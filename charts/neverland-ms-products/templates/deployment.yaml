@@ -1,0 +1,64 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "neverland-ms-products.fullname" . }}
+  labels:
+    app: {{ template "neverland-ms-products.name" . }}
+    chart: {{ template "neverland-ms-products.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "neverland-ms-products.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "neverland-ms-products.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: commercetools_projectKey
+            value: {{ .Values.commercetools_projectKey | quote }}
+          - name: commercetools_clientId
+            valueFrom:
+                secretKeyRef:
+                  name: {{ template "neverland-ms-products.name" . }}
+                  key: commercetools_clientId
+          - name: commercetools_clientSecret
+            valueFrom:
+                secretKeyRef:
+                  name: {{ template "neverland-ms-products.name" . }}
+                  key: commercetools_clientSecret          
+          ports:
+            - name: http
+              containerPort: {{ .Values.ports.containerPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

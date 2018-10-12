@@ -1,0 +1,47 @@
+clone:
+  depth: 20
+options:
+  max-time: 30
+
+definitions:
+    caches:
+        sonar: /root/.sonar/cache
+
+stepdefinitions:
+  - testing: &testing
+      name: Test
+      image: node:8
+      caches:
+        - node
+        - sonar
+      script:
+        - npm install
+        - npm test
+        - npm install -g sonarqube-scanner
+        - sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.branch.name=$BITBUCKET_BRANCH
+
+pipelines:
+  default:
+    - step: *testing
+
+  branches:
+    master:
+      - step: *testing
+      - step:
+          name: Docker and deployment
+          image: google/cloud-sdk:latest
+          deployment: production
+          script:
+            - docker build -t gcr.io/$GCP_PROJECT/$BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7} .
+            - echo $GOOGLE_CLIENT_SECRET_base64 | base64 --decode --ignore-garbage > ./gcloud-api-key.json
+            - gcloud auth activate-service-account --key-file ./gcloud-api-key.json
+            - gcloud auth configure-docker --quiet
+            - docker push gcr.io/$GCP_PROJECT/$BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7}
+            - echo "### Deploy to PROD "
+            - gcloud container clusters get-credentials $PROD_CLUSTER --region $CLUSTER_REGION --project $GCP_PROJECT
+            - curl https://kubernetes-helm.storage.googleapis.com/helm-$HELM_CLIENT_VERSION-linux-amd64.tar.gz | tar zx && mv linux-amd64/helm /usr/bin/ && helm version --client
+            - helm upgrade --install --wait --set image.tag=${BITBUCKET_COMMIT:0:7},commercetools_clientId=$COMMERCETOOLS_CLIENTID,commercetools_clientSecret=$COMMERCETOOLS_CLIENTSECRET --namespace meetup -f charts-values/$BITBUCKET_REPO_SLUG/$BITBUCKET_REPO_SLUG-prod/values.yaml $BITBUCKET_REPO_SLUG charts/$BITBUCKET_REPO_SLUG
+          services:
+            - docker
+          caches:
+            - docker
