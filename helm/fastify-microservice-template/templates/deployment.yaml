@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "fastify-microservice-template.fullname" . }}
+  labels:
+    app: {{ template "fastify-microservice-template.name" . }}
+    chart: {{ template "fastify-microservice-template.chart" . }}
+    release: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "fastify-microservice-template.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "fastify-microservice-template.name" . }}
+        release: {{ .Release.Name }}
+        version: {{ .Values.version }}
+    spec:
+{{- if .Values.serviceaccount.enabled }}
+      serviceAccountName: {{ template "fastify-microservice-template.fullname" . }}
+{{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: HOST
+              value: {{ .Values.container.host }}
+            - name: CT_API_URL
+              value: {{ .Values.commercetools.api_url | quote }}
+            - name: CT_AUTH_URL
+              value: {{ .Values.commercetools.auth_url | quote }}
+            - name: CT_PROJECT_KEY
+              value: {{ .Values.commercetools.project_key | quote }}
+            - name: CT_CLIENT_ID
+              value: {{ .Values.commercetools.client.id | quote }}
+            - name: CT_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "fastify-microservice-template.fullname" . }}
+                  key: commercetools.client.secret
+            - name: SERVICE_VERSION
+              value: {{ .Values.image.tag | quote }}          
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: http
+            initialDelaySeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 10

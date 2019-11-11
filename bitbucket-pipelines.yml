@@ -8,40 +8,78 @@ definitions:
         sonar: /root/.sonar/cache
 
 stepdefinitions:
-  - testing: &testing
-      name: Test
-      image: node:8
+  - lint: &lint
+      name: Lint
+      image: node:10-slim
       caches:
         - node
         - sonar
       script:
-        - npm install
+        - apt-get update && apt-get install -y unzip git
+        - npm install --no-audit
+        - npm run lint        
+
+  - testing: &testing
+      name: Test
+      image: node:10-slim
+      caches:
+        - node
+        - sonar
+      script:
+        - apt-get update && apt-get install -y unzip git
+        - npm install --no-audit
         - npm test
-        - npm install -g sonarqube-scanner
-        - sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.branch.name=$BITBUCKET_BRANCH
+        # - npm install -g sonarqube-scanner
+        # - sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.branch.name=$BITBUCKET_BRANCH
+
+  - audit: &audit
+      name: Audit
+      image: node:10-slim
+      caches:
+        - node
+        - sonar
+      script:
+        - apt-get update && apt-get install -y unzip git
+        - npm install --no-audit
+        - npm audit
+
+  - build: &build
+      name: Docker build and push
+      image: google/cloud-sdk
+      caches:
+        - docker
+      script:
+        - echo $BITBUCKET_REPO_SLUG
+        - docker build -t $BITBUCKET_REPO_SLUG .
+        - docker tag $BITBUCKET_REPO_SLUG gcr.io/$GOOGLE_PROJECT_ID/$BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7}
+        - echo $GCLOUD_SERVICE_KEY > $HOME/gcloud-service-key.json
+        - gcloud auth activate-service-account --key-file=$HOME/gcloud-service-key.json
+        - gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
+        - docker push gcr.io/$GOOGLE_PROJECT_ID/$BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7}
+      services:
+        - docker
+
+  - deploy: &deploy
+      name: GKE deployment
+      image: google/cloud-sdk:latest
+      deployment: production
+      script:
+        - echo $GCLOUD_SERVICE_KEY > $HOME/gcloud-service-key.json
+        - gcloud auth activate-service-account --key-file=$HOME/gcloud-service-key.json
+        - gcloud --quiet config set project $GOOGLE_PROJECT_ID
+        - gcloud --quiet config set compute/zone $GCLOUD_COMPUTE_ZONE
+        - gcloud --quiet container clusters get-credentials $GOOGLE_CLUSTER_NAME
+        - echo "### Deploy to PROD "
+        - curl https://kubernetes-helm.storage.googleapis.com/helm-v2.8.1-linux-amd64.tar.gz | tar zx && mv linux-amd64/helm /usr/bin/ && helm version --client
+        - helm upgrade --install --wait $BITBUCKET_REPO_SLUG helm/$BITBUCKET_REPO_SLUG --values helm/$BITBUCKET_REPO_SLUG/values.yaml --set image.tag=${BITBUCKET_COMMIT:0:7} --set commercetools.client.secret=${CT_CLIENT_SECRET} --set commercetools.client.id=${CT_CLIENT_ID} --set commercetools.project_key=${CT_PROJECT_KEY}
 
 pipelines:
   default:
+    - step: *lint
+    - step: *audit
     - step: *testing
 
   branches:
     master:
-      - step: *testing
-      - step:
-          name: Docker and deployment
-          image: google/cloud-sdk:latest
-          deployment: production
-          script:
-            - docker build -t gcr.io/$GCP_PROJECT/$BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7} .
-            - echo $GOOGLE_CLIENT_SECRET_base64 | base64 --decode --ignore-garbage > ./gcloud-api-key.json
-            - gcloud auth activate-service-account --key-file ./gcloud-api-key.json
-            - gcloud auth configure-docker --quiet
-            - docker push gcr.io/$GCP_PROJECT/$BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7}
-            - echo "### Deploy to PROD "
-            - gcloud container clusters get-credentials $PROD_CLUSTER --region $CLUSTER_REGION --project $GCP_PROJECT
-            - curl https://kubernetes-helm.storage.googleapis.com/helm-$HELM_CLIENT_VERSION-linux-amd64.tar.gz | tar zx && mv linux-amd64/helm /usr/bin/ && helm version --client
-            - helm upgrade --install --wait --set image.tag=${BITBUCKET_COMMIT:0:7},commercetools_clientId=$COMMERCETOOLS_CLIENTID,commercetools_clientSecret=$COMMERCETOOLS_CLIENTSECRET --namespace meetup -f charts-values/$BITBUCKET_REPO_SLUG/$BITBUCKET_REPO_SLUG-prod/values.yaml $BITBUCKET_REPO_SLUG charts/$BITBUCKET_REPO_SLUG
-          services:
-            - docker
-          caches:
-            - docker
+      - step: *build
+      - step: *deploy

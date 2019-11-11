@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "fastify-microservice-template.fullname" . }}
+  labels:
+    app: {{ template "fastify-microservice-template.name" . }}
+    chart: {{ template "fastify-microservice-template.chart" . }}
+    release: {{ .Release.Name }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ template "fastify-microservice-template.name" . }}
+    release: {{ .Release.Name }}

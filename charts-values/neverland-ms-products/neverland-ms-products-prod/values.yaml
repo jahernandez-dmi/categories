@@ -1,9 +1,0 @@
-replicaCount: 2
-
-ports:
-  containerPort: 3000
-
-service:
-  port: 3060
-
-commercetools_projectKey: neverland-dev

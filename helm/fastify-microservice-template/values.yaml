@@ -1,0 +1,40 @@
+# Default values for fastify-microservice-template.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+version: v1
+
+image:
+  repository: gcr.io/sodimac-orquestator/fastify-microservice-template #TODO CHANGE
+  tag: latest
+  pullPolicy: Always
+
+secret:
+  enabled: true
+
+container:
+  host: 0.0.0.0
+
+service:
+  type: NodePort
+  port: 4444
+  annotations: {}
+
+ingress:
+  enabled: true
+  annotations: {}
+  path: /
+
+serviceaccount:
+  enabled: true
+
+gcp_project_id: dummy-gcp-project-id
+commercetools:
+  api_url: https://api.commercetools.co
+  auth_url: https://auth.commercetools.co
+  project_key: dummy-project-key
+  client:
+    id: dummy-client-id
+    secret: dummy-client-secret

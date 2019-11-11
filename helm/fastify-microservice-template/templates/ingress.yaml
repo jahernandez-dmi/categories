@@ -1,0 +1,14 @@
+{{- $fullName := include "fastify-microservice-template.fullname" . -}}
+{{- $ingressPath := .Values.ingress.path -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    app: {{ template "fastify-microservice-template.name" . }}
+    chart: {{ template "fastify-microservice-template.chart" . }}
+    release: {{ .Release.Name }}
+spec:
+  backend:
+    serviceName: {{ $fullName }}
+    servicePort: http 
