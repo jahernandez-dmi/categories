@@ -27,6 +27,8 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
+            - name: GC_PROJECT_ID
+              value: {{ .Values.gc_project_id | quote }}
             - name: HOST
               value: {{ .Values.container.host }}
             - name: CT_API_URL
@@ -43,7 +45,17 @@ spec:
                   name: {{ template "fastify-microservice-template.fullname" . }}
                   key: commercetools.client.secret
             - name: SERVICE_VERSION
-              value: {{ .Values.image.tag | quote }}          
+              value: {{ .Values.image.tag | quote }}
+            - name: LOGGING_CONFIG_ENABLE
+              value: {{ .Values.commercetools.loging_config.enable | quote }}            
+            - name: LOGGING_CONFIG_USE_FASTIFY_LOGGER
+              value: {{ .Values.commercetools.loging_config.fastify_logger | quote }}            
+            - name: LOGGING_CONFIG_REQUEST
+              value: {{ .Values.commercetools.loging_config.request | quote }}            
+            - name: LOGGING_CONFIG_BODY
+              value: {{ .Values.commercetools.loging_config.body | quote }}            
+            - name: LOGGING_CONFIG_ERROR
+              value: {{ .Values.commercetools.loging_config.error | quote }}            
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

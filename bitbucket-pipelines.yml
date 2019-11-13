@@ -29,8 +29,8 @@ stepdefinitions:
         - apt-get update && apt-get install -y unzip git
         - npm install --no-audit
         - npm test
-        # - npm install -g sonarqube-scanner
-        # - sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.branch.name=$BITBUCKET_BRANCH
+        - npm install -g sonarqube-scanner
+        - sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.branch.name=$BITBUCKET_BRANCH
 
   - audit: &audit
       name: Audit
@@ -71,14 +71,13 @@ stepdefinitions:
         - gcloud --quiet container clusters get-credentials $GOOGLE_CLUSTER_NAME
         - echo "### Deploy to PROD "
         - curl https://kubernetes-helm.storage.googleapis.com/helm-v2.8.1-linux-amd64.tar.gz | tar zx && mv linux-amd64/helm /usr/bin/ && helm version --client
-        - helm upgrade --install --wait $BITBUCKET_REPO_SLUG helm/$BITBUCKET_REPO_SLUG --values helm/$BITBUCKET_REPO_SLUG/values.yaml --set image.tag=${BITBUCKET_COMMIT:0:7} --set commercetools.client.secret=${CT_CLIENT_SECRET} --set commercetools.client.id=${CT_CLIENT_ID} --set commercetools.project_key=${CT_PROJECT_KEY}
+        - helm upgrade --install --wait $BITBUCKET_REPO_SLUG helm/$BITBUCKET_REPO_SLUG --values helm/$BITBUCKET_REPO_SLUG/values.yaml --set image.tag=${BITBUCKET_COMMIT:0:7} --set commercetools.client.secret=${CT_CLIENT_SECRET} --set commercetools.client.id=${CT_CLIENT_ID} --set commercetools.project_key=${CT_PROJECT_KEY} --set gc_project_id=${GOOGLE_PROJECT_ID}
 
 pipelines:
   default:
     - step: *lint
     - step: *audit
     - step: *testing
-
   branches:
     master:
       - step: *build
