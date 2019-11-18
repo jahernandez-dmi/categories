@@ -80,5 +80,8 @@ pipelines:
     - step: *testing
   branches:
     master:
+      - step: *lint
+      - step: *audit
+      - step: *testing
       - step: *build
       - step: *deploy
