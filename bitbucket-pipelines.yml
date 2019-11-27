@@ -1,66 +1,67 @@
+image: node:10-slim
 clone:
   depth: 20
 options:
   max-time: 30
 
-definitions:
-    caches:
-        sonar: /root/.sonar/cache
-
 stepdefinitions:
   - lint: &lint
-      name: Lint
-      image: node:10-slim
+      name: Lint (node.js, markdown, dockerfile and sonar)
       caches:
         - node
-        - sonar
+        - docker
+      services:
+        - docker
       script:
-        - apt-get update && apt-get install -y unzip git
+        - apt-get update && apt-get install -y git=1:2.11.* --no-install-recommends
         - npm install --no-audit
-        - npm run lint        
-
-  - testing: &testing
-      name: Test
-      image: node:10-slim
-      caches:
-        - node
-        - sonar
-      script:
-        - apt-get update && apt-get install -y unzip git
-        - npm install --no-audit
-        - npm test
-        - npm install -g sonarqube-scanner
-        - sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.branch.name=$BITBUCKET_BRANCH
-
-  - audit: &audit
-      name: Audit
-      image: node:10-slim
-      caches:
-        - node
-        - sonar
-      script:
-        - apt-get update && apt-get install -y unzip git
-        - npm install --no-audit
-        - npm audit
-
+        - npm run lint
+        - npm run lint-md
+        - docker run --rm -i hadolint/hadolint:v1.17.3 < Dockerfile
   - build: &build
-      name: Docker build and push
+      name: Build (docker image creation and and export)
+      caches:
+        - docker
+      services:
+        - docker
+      script:
+        - docker build -t $BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7} .
+        - docker save --output tmp-image.docker $BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7}
+        - docker build --build-arg NODE_ENV=development -t $BITBUCKET_REPO_SLUG-src:${BITBUCKET_COMMIT:0:7} .
+        - docker save --output tmp-image-src.docker $BITBUCKET_REPO_SLUG-src:${BITBUCKET_COMMIT:0:7}
+      artifacts:
+        - tmp-image.docker
+        - tmp-image-src.docker
+  - test: &test
+      name: Test (Unit tests)
+      services:
+        - docker
+      script:
+        - docker load --input ./tmp-image-src.docker
+        - docker run --entrypoint="/bin/bash" $BITBUCKET_REPO_SLUG-src:${BITBUCKET_COMMIT:0:7} -c "mkdir coverage; npm test; npm install -g sonarqube-scanner; sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.branch.name=$BITBUCKET_BRANCH"
+  - audit: &audit
+      name: Audit (npm)
+      services:
+        - docker
+      script:
+        - docker load --input ./tmp-image-src.docker
+        - docker run --entrypoint="/bin/bash" $BITBUCKET_REPO_SLUG-src:${BITBUCKET_COMMIT:0:7} -c "npm audit"
+  - publish: &publish
+      name: Publish (push docker image)
       image: google/cloud-sdk
       caches:
         - docker
       script:
-        - echo $BITBUCKET_REPO_SLUG
-        - docker build -t $BITBUCKET_REPO_SLUG .
-        - docker tag $BITBUCKET_REPO_SLUG gcr.io/$GOOGLE_PROJECT_ID/$BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7}
+        - docker load --input ./tmp-image.docker
+        - docker tag $BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7} gcr.io/$GOOGLE_PROJECT_ID/$BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7}
         - echo $GCLOUD_SERVICE_KEY > $HOME/gcloud-service-key.json
         - gcloud auth activate-service-account --key-file=$HOME/gcloud-service-key.json
         - gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
         - docker push gcr.io/$GOOGLE_PROJECT_ID/$BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7}
       services:
         - docker
-
   - deploy: &deploy
-      name: GKE deployment
+      name: Deploy
       image: google/cloud-sdk:latest
       deployment: production
       script:
@@ -70,18 +71,20 @@ stepdefinitions:
         - gcloud --quiet config set compute/zone $GCLOUD_COMPUTE_ZONE
         - gcloud --quiet container clusters get-credentials $GOOGLE_CLUSTER_NAME
         - echo "### Deploy to PROD "
-        - curl https://kubernetes-helm.storage.googleapis.com/helm-v2.8.1-linux-amd64.tar.gz | tar zx && mv linux-amd64/helm /usr/bin/ && helm version --client
-        - helm upgrade --install --wait $BITBUCKET_REPO_SLUG helm/$BITBUCKET_REPO_SLUG --values helm/$BITBUCKET_REPO_SLUG/values.yaml --set image.tag=${BITBUCKET_COMMIT:0:7} --set commercetools.client.secret=${CT_CLIENT_SECRET} --set commercetools.client.id=${CT_CLIENT_ID} --set commercetools.project_key=${CT_PROJECT_KEY} --set gc_project_id=${GOOGLE_PROJECT_ID}
+        - curl https://get.helm.sh/helm-v3.0.0-linux-amd64.tar.gz | tar -zxv && mv linux-amd64/helm /usr/local/bin/helm && helm version --client
+        - helm upgrade --install --wait $BITBUCKET_REPO_SLUG helm/$BITBUCKET_REPO_SLUG --values helm/$BITBUCKET_REPO_SLUG/values.yaml --set image.tag=${BITBUCKET_COMMIT:0:7} --set commercetools.client.secret=${CT_CLIENT_SECRET} --set commercetools.client.id=${CT_CLIENT_ID} --set commercetools.project_key=${CT_PROJECT_KEY} --set gc_project_id=${GOOGLE_PROJECT_ID} --set commercetools.scope=${CT_SCOPE} --set google_merchant_center_id=${GOOGLE_MERCHANT_CENTER_ID}
 
 pipelines:
   default:
     - step: *lint
+    - step: *build
+    - step: *test
     - step: *audit
-    - step: *testing
   branches:
     master:
       - step: *lint
-      - step: *audit
-      - step: *testing
       - step: *build
+      - step: *test
+      - step: *audit
+      - step: *publish
       - step: *deploy
