@@ -3,6 +3,9 @@ clone:
   depth: 20
 options:
   max-time: 30
+definitions:
+  caches:
+    sonar: /root/.sonar/cache
 
 stepdefinitions:
   - lint: &lint
@@ -33,12 +36,18 @@ stepdefinitions:
         - tmp-image.docker
         - tmp-image-src.docker
   - test: &test
-      name: Test (Unit tests)
-      services:
-        - docker
+      name: Test and Analyze
+      image: node:10-slim
+      caches:
+        - node
+        - sonar
       script:
-        - docker load --input ./tmp-image-src.docker
-        - docker run --entrypoint="/bin/bash" $BITBUCKET_REPO_SLUG-src:${BITBUCKET_COMMIT:0:7} -c "mkdir coverage; npm test; npm install -g sonarqube-scanner; sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.branch.name=$BITBUCKET_BRANCH"
+        - apt-get update && apt-get install -y unzip git
+        - npm install --no-audit
+        - npm test
+        # Sonar Analysis move here to include test coverage
+        - npm install -g sonarqube-scanner
+        - sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.branch.name=$BITBUCKET_BRANCH
   - audit: &audit
       name: Audit (npm)
       services:
