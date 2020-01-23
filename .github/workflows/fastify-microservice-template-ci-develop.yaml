@@ -1,0 +1,145 @@
+name: B2B MS Company CI/CD development release (release/**) flow
+on:
+  push:
+    branches:
+      - release/**
+    paths:
+      - 'src/**'
+      - '.github/workflows/fastify-microservice-template-ci-develop.yaml'
+      - '*.json'
+      - '*.js'
+env:
+    GCP_SDK_VERSION: '276.0.0'
+    GITHUB_SHA: ${{ github.sha }}
+    IMAGE: fastify-microservice-template
+jobs:
+  lint:
+    name: Lint (node.js, dockerfile, markdown)
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        node-version: [10.x]
+    env:
+      GC_PROJECT_ID: ${{ secrets.GOOGLE_PROJECT_ID }}
+    steps:
+
+    - uses: actions/checkout@v1
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install dependencies
+      run: |
+        npm install --no-audit
+
+    - name: Lint Node.js
+      run: |
+        cd packages/b2b-ms-company
+        npm run lint
+
+    - name: Lint Markdown
+      run: |
+        cd packages/b2b-ms-company
+        npm run lint-md
+
+    - name: Lint Dockerfile
+      run: |
+        cd packages/b2b-ms-company
+        docker run -i hadolint/hadolint:v1.17.3 < Dockerfile
+
+  build:
+    name: Build (node.js)
+    needs: lint
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        node-version: [10.x]
+    env:
+      GC_PROJECT_ID: ${{ secrets.GOOGLE_PROJECT_ID }}
+    steps:
+
+      - uses: actions/checkout@v1
+
+      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          version: $GCP_SDK_Version
+          service_account_key: ${{ secrets.GCLOUD_SERVICE_KEY }}
+
+      - run: |
+          # Set up docker to authenticate
+          # via gcloud command-line tool.
+          gcloud auth configure-docker
+
+      # Build the Docker image
+      - name: Build with Docker
+        run: |
+          cd packages/b2b-ms-company
+          docker build -t gcr.io/"$GC_PROJECT_ID"/"$IMAGE":"$GITHUB_SHA" \
+            --build-arg PORT=8080 .
+
+      # Push the Docker image to Google Container Registry
+      - name: Publish
+        run: |
+          docker push gcr.io/$GC_PROJECT_ID/$IMAGE:$GITHUB_SHA
+
+  test:
+    name: Test
+    needs: build_for_staging
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        node-version: [10.x]
+    env:
+      GC_PROJECT_ID: ${{ secrets.GOOGLE_PROJECT_ID }}
+    steps:
+
+      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          version: $GCP_SDK_Version
+          service_account_key: ${{ secrets.GCLOUD_SERVICE_KEY }}
+
+      - run: |
+          # Set up docker to authenticate
+          # via gcloud command-line tool.
+          gcloud auth configure-docker
+
+      - name: Unit Testing
+        run: |
+          docker run --rm --user=root --entrypoint="/bin/bash"                  \
+          -t gcr.io/"$GC_PROJECT_ID"/"$IMAGE":"$GITHUB_SHA"                     \
+          -c "NODE_ENV=development; cd /opt/node_app/app; npm install; npm test"
+
+      - name: Audit for security vulnerabilities
+        run: |
+          docker run --rm --user=root --entrypoint="/bin/bash"                  \
+          -t gcr.io/"$GC_PROJECT_ID"/"$IMAGE":"$GITHUB_SHA"                     \
+          -c "NODE_ENV=development; cd /opt/node_app/app; npm install; npm audit"
+
+  deploy:
+    name: Deploy to Staging
+    needs: test
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        node-version: [10.x]
+    env:
+      GC_PROJECT_ID: ${{ secrets.GOOGLE_PROJECT_ID }}
+    steps:
+
+      - uses: actions/checkout@v1
+
+      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          version: $GCP_SDK_Version
+          service_account_key: ${{ secrets.GCLOUD_SERVICE_KEY }}
+
+      - name: Deploy to App Engine
+        run: |
+          # Interpolate environment variables
+          cd packages/b2b-ms-company
+          envsubst < app.yaml.template > app.yaml
+          cat app.yaml
+          gcloud config set project $GC_PROJECT_ID
+          gcloud app deploy --quiet --image-url=gcr.io/"$GOOGLE_PROJECT_ID"/"$IMAGE":"$GITHUB_SHA"
