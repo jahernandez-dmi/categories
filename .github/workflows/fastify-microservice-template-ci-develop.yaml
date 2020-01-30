@@ -1,4 +1,10 @@
-name: B2B MS Company CI/CD development release (release/**) flow
+##############################################
+# Environment variables (as github secrets): #
+# GOOGLE_PROJECT_ID                          #
+# GCLOUD_SERVICE_KEY                         #
+##############################################
+
+name: Fastify Microservice CI/CD development release (release/**) flow
 on:
   push:
     branches:
@@ -36,17 +42,14 @@ jobs:
 
     - name: Lint Node.js
       run: |
-        cd packages/b2b-ms-company
         npm run lint
 
     - name: Lint Markdown
       run: |
-        cd packages/b2b-ms-company
         npm run lint-md
 
     - name: Lint Dockerfile
       run: |
-        cd packages/b2b-ms-company
         docker run -i hadolint/hadolint:v1.17.3 < Dockerfile
 
   build:
@@ -75,7 +78,6 @@ jobs:
       # Build the Docker image
       - name: Build with Docker
         run: |
-          cd packages/b2b-ms-company
           docker build -t gcr.io/"$GC_PROJECT_ID"/"$IMAGE":"$GITHUB_SHA" \
             --build-arg PORT=8080 .
 
@@ -138,7 +140,6 @@ jobs:
       - name: Deploy to App Engine
         run: |
           # Interpolate environment variables
-          cd packages/b2b-ms-company
           envsubst < app.yaml.template > app.yaml
           cat app.yaml
           gcloud config set project $GC_PROJECT_ID

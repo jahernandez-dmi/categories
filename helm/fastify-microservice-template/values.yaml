@@ -7,7 +7,7 @@ replicaCount: 1
 version: v1
 
 image:
-  repository: gcr.io/sodimac-orquestator/fastify-microservice-template #TODO CHANGE
+  repository: gcr.io/dummy-gcp-project-id/fastify-microservice-image #TODO CHANGE
   tag: latest
   pullPolicy: Always
 
