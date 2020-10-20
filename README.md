@@ -162,7 +162,3 @@ The following variables must be defined/overwritten so that the service can work
 | CT_CLIENT_SECRET | commercetools client secret | -                                                             |
 | CT_SCOPE         | commercetools scope         | -                                                             |
 | GC_PROJECT_ID    | The Google Cloud project id | -                                                             |
-
-## Disable libraries and dependencies:
-
-- "fastify-oas": "^2.6.2",
