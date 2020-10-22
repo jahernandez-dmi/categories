@@ -1,18 +1,19 @@
+
 # Overview
 
 This is a template for microservices using [Fastify](https://github.com/fastify/fastify) framework.
 
 ## TECHNOLOGIES
-
-- [**NodeJS v10**](https://nodejs.org/docs/latest-v10.x/api/index.html)
-- **[Fastify](https://www.fastify.io/):** As servier
-- **[JestJS](https://jestjs.io/):** For testing
-- **[Eslint](https://eslint.org/):** For linting
-- **[Google Cloud](https://cloud.google.com/)**: As cloud provider
-- **[Kubernetes](https://kubernetes.io/)**: For container orchestration
-- **[Docker](https://www.docker.com/)**: For container generation
-- **[Bitbucket Pipelines](https://bitbucket.org/product/features/pipelines):** As CI
-- **[SonarCloud](https://sonarcloud.io/)**: For static code analisys
+  
+-   [**NodeJS v10**](https://nodejs.org/docs/latest-v10.x/api/index.html)
+-   **[Fastify](https://www.fastify.io/):** As servier
+-   **[JestJS](https://jestjs.io/):** For testing
+-   **[Eslint](https://eslint.org/):** For linting
+-   **[Google Cloud](https://cloud.google.com/)**: As cloud provider
+-   **[Kubernetes](https://kubernetes.io/)**: For container orchestration
+-   **[Docker](https://www.docker.com/)**: For container generation
+-   **[Bitbucket Pipelines](https://bitbucket.org/product/features/pipelines):** As CI
+-   **[SonarCloud](https://sonarcloud.io/)**: For static code analisys
 
 ## PLUGINS
 
@@ -24,8 +25,8 @@ Includes the [fastify-commercetools](https://bitbucket.org/devgurus/fastify-comm
 
 Includes the [fastify-healthcheck](https://github.com/smartiniOnGitHub/fastify-healthcheck#readme) plugin and creates two health endpoints:
 
-- GET _/live_
-- GET _/ready_
+-   GET */live*
+-   GET */ready*
 
 ### Metrics
 
@@ -115,50 +116,51 @@ Plugin for generate swagger documentation based on OpenApi v3
 The error response object is based on [JSON API specification](https://jsonapi.org/format/1.1/#errors) and has the following structure:
 Error objects must be returned as an array keyed by `errors`
 
-- **id**: unique identifier for this particular occurrence of the problem.
-- **status**: the HTTP status code applicable to this problem
-- **code**: an internal specific error code
-- **title**: a short, human-readable summary of the problem
-- **detail**: a human-readable explanation
-- **meta**: a meta object containing non-standard meta-information
+-   **id**: unique identifier for this particular occurrence of the problem.
+-   **status**: the HTTP status code applicable to this problem
+-   **code**: an internal specific error code
+-   **title**: a short, human-readable summary of the problem
+-   **detail**: a human-readable explanation
+-   **meta**: a meta object containing non-standard meta-information
 
 Example:
 
 ```javascript
 {
-  errors: [
+ errors: [
     {
-      status: '422',
-      title: 'Invalid Attribute',
-      code: 'INVALID_ATTRIBUTE',
-      detail: "The attribute 'foo' is not valid",
-    },
-  ];
+     status: "422",
+     title: "Invalid Attribute",
+     code: "INVALID_ATTRIBUTE",
+     detail: "The attribute 'foo' is not valid"
+    }
+ ];
 }
+
 ```
 
 ## NPM Scripts
 
-- **lint**: runs linting using eslint/prettier
-- **lint-fix**: runs linting and fix the errors
-- **start**: runs the server in port 4444 by default
-- **start-dev**: runs the server with nodemon with hot reloading
-- **test**: runs the project tests and shows coverage
-- **swagger**: generates the swagger documentation in the folder _/docs_
+-   **lint**: runs linting using eslint/prettier
+-   **lint-fix**: runs linting and fix the errors
+-   **start**: runs the server in port 4444 by default
+-   **start-dev**: runs the server with nodemon with hot reloading
+-   **test**: runs the project tests and shows coverage
+-   **swagger**: generates the swagger documentation in the folder */docs*
 
 ## Environment variables
 
 The following variables must be defined/overwritten so that the service can work properly
 
-| VARIABLE         | DESCRIPTION                 | DEFAULT                                                       |
-| ---------------- | --------------------------- | ------------------------------------------------------------- |
-| NODE_ENV         | Environment                 | Development                                                   |
-| HOST             | Server address              | localhost                                                     |
-| PORT             | Server port                 | 4444                                                          |
-| CT_API_URL       | commercetools API URL       | [https://api.commercetools.co](https://api.commercetools.co)  |
-| CT_AUTH_URL      | commercetools auth URL      | [https://auth.commercetools.co](https://api.commercetools.co) |
-| CT_PROJECT_KEY   | commercetools project key   | -                                                             |
-| CT_CLIENT_ID     | commercetools client id     | -                                                             |
-| CT_CLIENT_SECRET | commercetools client secret | -                                                             |
-| CT_SCOPE         | commercetools scope         | -                                                             |
-| GC_PROJECT_ID    | The Google Cloud project id | -                                                             |
+| VARIABLE                  | DESCRIPTION                   | DEFAULT                         |
+| ------------------------- | ----------------------------- | ------------------------------- |
+| NODE_ENV                  | Environment                   | Development                     | 
+| HOST                      | Server address                | localhost                       |
+| PORT                      | Server port                   | 4444                            |
+| CT_API_URL                | commercetools API URL         | [https://api.commercetools.co](https://api.commercetools.co)  |
+| CT_AUTH_URL               | commercetools auth URL        | [https://auth.commercetools.co](https://api.commercetools.co)  |
+| CT_PROJECT_KEY            | commercetools project key     | -                               |
+| CT_CLIENT_ID              | commercetools client id       | -                               |
+| CT_CLIENT_SECRET          | commercetools client secret   | -                               |
+| CT_SCOPE                  | commercetools scope           | -                               |
+| GC_PROJECT_ID             | The Google Cloud project id   | -                               |
