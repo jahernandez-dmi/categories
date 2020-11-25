@@ -1,0 +1,64 @@
+name: Stable workflow
+
+#on:
+#  push:
+#    tags:
+#    - stable/**
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_SDK_VERSION: '319.0.0'
+  GCP_GKE_CLUSTER_NAME: my-gke-cluster
+  GCP_GKE_CLUSTER_REGION: us-central1
+  IMAGE_NAME: my-service
+  COMMIT_SHA: ${{ github.sha }}
+  IMAGE_FULLNAME: gcr.io/${GCP_PROJECT_ID}/${IMAGE_NAME}
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+    - name: Set Up SDK
+      uses: google-github-actions/setup-gcloud@master
+        with:
+          version: $GCP_SDK_VERSION
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: $GCP_PROJECT_ID
+      run: |
+        gcloud auth configure-docker
+    - name: Tag Image
+      run: |
+        docker tag ${IMAGE_FULLNAME}:${COMMIT_SHA} ${IMAGE_FULLNAME}:${GITHUB_REF##*/}
+    - name: Push Image
+      run: |
+        docker push ${IMAGE_FULLNAME}:${GITHUB_REF##*/}
+    
+  release:
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Create GitHub Release
+      uses:
+  
+  deploy:
+    needs: [build, tag]
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Get GKE Credentials
+      uses: google-github-actions/get-gke-credentials@main
+      with:
+        cluster_name: $GCP_GKE_CLUSTER_NAME
+        location: $GCP_GKE_LOCATION
+        credentials: ${{ secrets.GCP_SA_KEY }}
+        project_id: $GCP_PROJECT_ID
+    - name: Add Helm Repo
+      run: |
+        helm repo add ${REPO_NAME} ${REPO_URL}
+    - name: Helm Update
+      run: |
+        helm update
+    - name: Helm Upgrade
+      run: |
+        helm upgrade --install ${CHART_NAME} --version ${CHART_VERSION} -f values.yaml
+

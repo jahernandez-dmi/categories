@@ -1,0 +1,26 @@
+# NodeJS
+node_modules
+npm-debug.log
+
+# Docker
+Dockerfile
+.dockerignore
+
+# VCS
+.git
+.hg
+.svn
+.DS_Store
+
+# Pipelines
+.gitlab-ci.yaml
+.github
+bitbucket-pipelines.yaml
+
+# Testing and linting
+coverage
+sonar-project.properties
+
+# Misc
+README.md
+docs

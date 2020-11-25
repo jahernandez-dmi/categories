@@ -1,0 +1,91 @@
+name: CI workflow
+
+#on:
+#  pull_request:
+#    paths:
+#      - 'src/**'
+#      - '.github/workflows/fastify-microservice-template-ci-develop.yaml'
+#      - '*.json'
+#      - '*.js'
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_SDK_VERSION: '319.0.0'
+  IMAGE_NAME: my-service
+  COMMIT_SHA: ${{ github.sha }}
+  IMAGE_TAG: gcr.io/${GCP_PROJECT_ID}/${IMAGE_NAME}:${COMMIT_SHA}
+
+jobs:
+  lint:
+    name: Linter
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+      with:
+        # Full git history is needed to get a proper list of changed files within `super-linter`
+        fetch-depth: 0
+    - name: Lint Code
+      uses: github/super-linter@v3.13.5
+      env:
+        DEFAULT_BRANCH: master
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        LINTER_RULES_PATH: linters
+        VALIDATE_DOCKERFILE: true
+        VALIDATE_DOCKERFILE_HADOLINT: true
+        VALIDATE_JAVASCRIPT_ES: true
+        VALIDATE_JAVASCRIPT_STANDARD: true
+        JAVASCRIPT_ES_CONFIG_FILE: .eslintrc.json
+        VALIDATE_JSON: true
+        VALIDATE_MARKDOWN: true
+        VALIDATE_YAML:true
+
+  build:
+    needs: lint
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+    - name: Set Up GCP
+      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          version: $GCP_SDK_VERSION
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+      run: |
+        gcloud auth configure-docker
+    - name: Build Image
+      run: |
+        docker build -t ${IMAGE_TAG}
+      
+  test:
+    needs: build
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Set Up GCP
+      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          version: $GCP_SDK_VERSION
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+      run: |
+        gcloud auth configure-docker
+    - name: Unit Tests
+      run: |
+        docker run --rm --user=root --entrypoint="/bin/bash" -t $"{IMAGE_TAG} \
+          -c "NODE_ENV=development; cd /opt/node_app/app; npm install; npm test"
+
+  audit:
+    needs: build
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Set Up GCP
+      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          version: $GCP_SDK_VERSION
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+      run: |
+        gcloud auth configure-docker
+    - name: Dependency check
+      run: |
+        docker run --rm --user=root --entrypoint="/bin/bash" -t $"{IMAGE_TAG} \
+          -c "NODE_ENV=development; cd /opt/node_app/app; npm install; npm audit"
+
