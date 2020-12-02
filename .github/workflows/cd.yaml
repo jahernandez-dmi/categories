@@ -1,0 +1,93 @@
+name: CD workflow
+
+on:
+  # Only run after the CI workflow finished.
+  workflow_run:
+    workflows: ["CI workflow"]
+    branches: [main]
+    types:
+      - completed
+
+env:
+  NODE_VERSION: 12
+
+  # GCP env variables
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID_STAGE }}
+  GCP_SA_KEY: ${{ secrets.GCP_SA_KEY_STAGE }}
+  GCP_SDK_VERSION: '319.0.0'
+  GCP_GKE_CLUSTER_NAME: my-gke-cluster  # Change me!
+  GCP_GKE_CLUSTER_REGION: us-central1   # Change me!
+  GCP_GKE_CLUSTER_NAMESPACE: default    # Change me!
+
+  # Docker image variables
+  COMMIT_SHA: ${{ github.sha }}
+  IMAGE_REPOSITORY: gcr.io/${{ env.GCP_PROJECT_ID }}
+  IMAGE_NAME: ${{ github.event.repository.name }}
+  IMAGE_FULLNAME: ${{ env.IMAGE_REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.COMMIT_SHA }}
+
+  # Helm variables
+  HELM_INSTALL_TIMEOUT: 5m
+  HELM_VERSION: '3.4.1'
+  HELM_REPO: devgurusio/helm-chart      # Change me!
+  HELM_RELEASE_NAME: ${{ github.event.repository.name }}  # by default release name will be repo name
+  HELM_PATH: helm/
+
+jobs:
+  build:
+    # Only run if CI Workflow finished successfully
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Setup gcloud environment
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          version: ${{ env.GCP_SDK_VERSION }}
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          service_account_key: ${{ env.GCP_SA_KEY }}
+          export_default_credentials: true
+      - name: Setup GCR
+        run: gcloud auth configure-docker
+      - name: Build Image
+        run: |
+          docker build -t ${IMAGE_REPOSITORY}/${IMAGE_NAME}:${COMMIT_SHA} \
+            --build-arg NODE_VERSION=$NODE_VERSION .
+      - name: Push Image
+        run: docker push ${IMAGE_REPOSITORY}/${IMAGE_NAME}:${COMMIT_SHA}
+
+  deploy:
+    # Only run if CI Workflow finished successfully
+    if: github.event.workflow_run.conclusion == 'success'
+    needs: [build]
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Get GKE Credentials
+        uses: google-github-actions/get-gke-credentials@main
+        with:
+          cluster_name: ${{ env.GCP_GKE_CLUSTER_NAME }}
+          location: ${{ env.GCP_GKE_CLUSTER_REGION }}
+          credentials: ${{ env.GCP_SA_KEY }}
+          project_id: ${{ env.GCP_PROJECT_ID }}
+      - name: Setup Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: ${{ env.HELM_VERSION }}
+      - name: Checkout common-chart
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ env.HELM_REPO }}
+          token: ${{ secrets.REPO_PAT }}
+          path: ${{ env.HELM_PATH }}
+      - name: Upgrade Helm Chart
+        run: |
+          helm upgrade --install --wait \
+            --values helm/values-stage.yaml \
+            --set-string image.repository=${IMAGE_REPOSITORY} \
+            --set-string image.tag=${COMMIT_SHA} \
+            --namespace ${GCP_GKE_CLUSTER_NAMESPACE} \
+            --timeout ${HELM_INSTALL_TIMEOUT} \
+            ${HELM_RELEASE_NAME} \
+            ${HELM_PATH}
