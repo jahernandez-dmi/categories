@@ -1,91 +1,107 @@
 name: CI workflow
 
-#on:
-#  pull_request:
-#    paths:
-#      - 'src/**'
-#      - '.github/workflows/fastify-microservice-template-ci-develop.yaml'
-#      - '*.json'
-#      - '*.js'
+on:
+  pull_request:
+  # We need to run it again on merge to main branch as we use squash commits.
+  push:
+    branches: [main]
 
 env:
-  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  GCP_SDK_VERSION: '319.0.0'
-  IMAGE_NAME: my-service
-  COMMIT_SHA: ${{ github.sha }}
-  IMAGE_TAG: gcr.io/${GCP_PROJECT_ID}/${IMAGE_NAME}:${COMMIT_SHA}
+  NODE_VERSION: 12.x
 
 jobs:
   lint:
-    name: Linter
+    name: linter
     runs-on: ubuntu-18.04
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
-      with:
-        # Full git history is needed to get a proper list of changed files within `super-linter`
-        fetch-depth: 0
-    - name: Lint Code
-      uses: github/super-linter@v3.13.5
-      env:
-        DEFAULT_BRANCH: master
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        LINTER_RULES_PATH: linters
-        VALIDATE_DOCKERFILE: true
-        VALIDATE_DOCKERFILE_HADOLINT: true
-        VALIDATE_JAVASCRIPT_ES: true
-        VALIDATE_JAVASCRIPT_STANDARD: true
-        JAVASCRIPT_ES_CONFIG_FILE: .eslintrc.json
-        VALIDATE_JSON: true
-        VALIDATE_MARKDOWN: true
-        VALIDATE_YAML:true
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+          registry-url: 'https://npm.pkg.github.com'
+      - name: Run npm install
+        run: npm install
+      - name: NPM lint
+        run: npm run lint
+      - name: Markdown Lint
+        run: npm run lint-md
+      - name: Docker Lint
+        run: npm run lint-docker
+      - name: Docker Hadolint
+        run: |
+          wget https://github.com/hadolint/hadolint/releases/download/v1.19.0/hadolint-Linux-x86_64 -O /tmp/hadolint
+          chmod +x /tmp/hadolint
+          /tmp/hadolint Dockerfile
+      - name: Json Lint
+        run: |
+          # Generate the list of json files since jsonlint does not support glob patterns.
+          git ls-files | grep ".json" | while read f; do ./node_modules/.bin/jsonlint $f -q; done
+      - name: Yaml Lint
+        run: |
+          pip install yamllint
+          yamllint -c .yaml-lint.yaml  .
 
-  build:
-    needs: lint
-    runs-on: ubuntu-18.04
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
-    - name: Set Up GCP
-      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-        with:
-          version: $GCP_SDK_VERSION
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-      run: |
-        gcloud auth configure-docker
-    - name: Build Image
-      run: |
-        docker build -t ${IMAGE_TAG}
-      
   test:
-    needs: build
     runs-on: ubuntu-18.04
     steps:
-    - name: Set Up GCP
-      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
         with:
-          version: $GCP_SDK_VERSION
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-      run: |
-        gcloud auth configure-docker
-    - name: Unit Tests
-      run: |
-        docker run --rm --user=root --entrypoint="/bin/bash" -t $"{IMAGE_TAG} \
-          -c "NODE_ENV=development; cd /opt/node_app/app; npm install; npm test"
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+          registry-url: 'https://npm.pkg.github.com'
+      - name: Run npm install
+        run: npm install
+      - name: Run npm test
+        run: npm test
 
   audit:
-    needs: build
     runs-on: ubuntu-18.04
     steps:
-    - name: Set Up GCP
-      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
         with:
-          version: $GCP_SDK_VERSION
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-      run: |
-        gcloud auth configure-docker
-    - name: Dependency check
-      run: |
-        docker run --rm --user=root --entrypoint="/bin/bash" -t $"{IMAGE_TAG} \
-          -c "NODE_ENV=development; cd /opt/node_app/app; npm install; npm audit"
-
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+          registry-url: 'https://npm.pkg.github.com'
+      - name: Run npm install
+        run: npm install
+      - name: Run npm audit
+        run: npm audit
