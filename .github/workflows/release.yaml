@@ -1,9 +1,9 @@
 name: Release workflow
 
 on:
- push:
-   tags:
-   - release/**
+  push:
+    tags:
+      - release/**
 
 env:
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
@@ -18,24 +18,24 @@ jobs:
   tag:
     runs-on: ubuntu-18.04
     steps:
-    - name: Set Up SDK
-      uses: google-github-actions/setup-gcloud@master
-      with:
-        version: $GCP_SDK_VERSION
-        project_id: $GCP_PROJECT_ID
-        service_account_key: ${{ secrets.GCP_SA_KEY }}
-    - name: Setup Docker
-      run: |
-        gcloud auth configure-docker
-    - name: Pull Image
-      run: |
-        docker pull ${IMAGE_FULLNAME}:${COMMIT_SHA}
-    - name: Tag Image
-      run: |
-        docker tag ${IMAGE_FULLNAME}:${COMMIT_SHA} ${IMAGE_FULLNAME}:${GITHUB_REF##*/}
-    - name: Push Image
-      run: |
-        docker push ${IMAGE_FULLNAME}:${GITHUB_REF##*/}
+      - name: Set Up SDK
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          version: $GCP_SDK_VERSION
+          project_id: $GCP_PROJECT_ID
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+      - name: Setup Docker
+        run: |
+          gcloud auth configure-docker
+      - name: Pull Image
+        run: |
+          docker pull ${IMAGE_FULLNAME}:${COMMIT_SHA}
+      - name: Tag Image
+        run: |
+          docker tag ${IMAGE_FULLNAME}:${COMMIT_SHA} ${IMAGE_FULLNAME}:${GITHUB_REF##*/}
+      - name: Push Image
+        run: |
+          docker push ${IMAGE_FULLNAME}:${GITHUB_REF##*/}
 
   deploy:
     needs: [tag]

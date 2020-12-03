@@ -6,6 +6,7 @@
     "lint": "eslint .",
     "lint-fix": "eslint --fix .",
     "lint-md": "remark -f .",
+    "lint-docker": "dockerfilelint Dockerfile",
     "start": "node index.js",
     "start-dev": "nodemon -e js index.js",
     "test": "jest",

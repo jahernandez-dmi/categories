@@ -52,7 +52,7 @@ jobs:
       - name: Yaml Lint
         run: |
           pip install yamllint
-          yamllint -c .yaml-lint.yaml  .
+          yamllint -c .yaml-lint.yaml .
 
   test:
     runs-on: ubuntu-18.04
