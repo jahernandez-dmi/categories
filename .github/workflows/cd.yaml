@@ -36,8 +36,6 @@ jobs:
     # Only run if CI Workflow finished successfully
     if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-18.04
-    env:
-      IMAGE_TAG: ${{ env.IMAGE_REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.COMMIT_SHA}}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -51,9 +49,10 @@ jobs:
         run: gcloud auth configure-docker
       - name: Build Image
         run: |
-          docker build -t ${IMAGE_TAG} --build-arg NODE_VERSION=$NODE_VERSION .
+          docker build -t ${IMAGE_REPOSITORY}/${IMAGE_NAME}:${COMMIT_SHA} \
+            --build-arg NODE_VERSION=$NODE_VERSION .
       - name: Push Image
-        run: docker push ${IMAGE_TAG}
+        run: docker push ${IMAGE_REPOSITORY}/${IMAGE_NAME}:${COMMIT_SHA}
 
   deploy:
     # Only run if CI Workflow finished successfully
