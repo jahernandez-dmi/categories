@@ -12,8 +12,8 @@ env:
   NODE_VERSION: 12
 
   # GCP env variables
-  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID_STAGE }}
-  GCP_SA_KEY: ${{ secrets.GCP_SA_KEY_STAGE }}
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
   GCP_SDK_VERSION: '319.0.0'
   GCP_GKE_CLUSTER_NAME: my-gke-cluster  # Change me!
   GCP_GKE_CLUSTER_REGION: us-central1   # Change me!
@@ -21,9 +21,8 @@ env:
 
   # Docker image variables
   COMMIT_SHA: ${{ github.sha }}
-  IMAGE_REPOSITORY: gcr.io/${{ env.GCP_PROJECT_ID }}
+  IMAGE_REPOSITORY: gcr.io/${{ secrets.GCP_PROJECT_ID }}
   IMAGE_NAME: ${{ github.event.repository.name }}
-  IMAGE_FULLNAME: ${{ env.IMAGE_REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.COMMIT_SHA }}
 
   # Helm variables
   HELM_INSTALL_TIMEOUT: 5m
