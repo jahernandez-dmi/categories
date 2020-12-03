@@ -22,13 +22,13 @@ env:
   # Docker image variables
   COMMIT_SHA: ${{ github.sha }}
   IMAGE_REPOSITORY: gcr.io/${{ secrets.GCP_PROJECT_ID }}
-  IMAGE_NAME: ${{ github.event.repository.name }}
+  IMAGE_NAME: ${{ github.event.repository.name }}  # by default the image name will be the repo name
 
   # Helm variables
   HELM_INSTALL_TIMEOUT: 5m
   HELM_VERSION: '3.4.1'
   HELM_REPO: devgurusio/helm-chart      # Change me!
-  HELM_RELEASE_NAME: ${{ github.event.repository.name }}  # by default release name will be repo name
+  HELM_RELEASE_NAME: ${{ github.event.repository.name }}  # by default release name will be the repo name
   HELM_PATH: helm/
 
 jobs:
@@ -36,6 +36,8 @@ jobs:
     # Only run if CI Workflow finished successfully
     if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-18.04
+    env:
+      IMAGE_TAG: ${IMAGE_REPOSITORY}/${IMAGE_NAME}:${COMMIT_SHA}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -45,15 +47,13 @@ jobs:
           version: ${{ env.GCP_SDK_VERSION }}
           project_id: ${{ env.GCP_PROJECT_ID }}
           service_account_key: ${{ env.GCP_SA_KEY }}
-          export_default_credentials: true
       - name: Setup GCR
         run: gcloud auth configure-docker
       - name: Build Image
         run: |
-          docker build -t ${IMAGE_REPOSITORY}/${IMAGE_NAME}:${COMMIT_SHA} \
-            --build-arg NODE_VERSION=$NODE_VERSION .
+          docker build -t ${IMAGE_TAG} --build-arg NODE_VERSION=$NODE_VERSION .
       - name: Push Image
-        run: docker push ${IMAGE_REPOSITORY}/${IMAGE_NAME}:${COMMIT_SHA}
+        run: docker push ${IMAGE_TAG}
 
   deploy:
     # Only run if CI Workflow finished successfully
