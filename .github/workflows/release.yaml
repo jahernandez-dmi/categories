@@ -1,4 +1,4 @@
-name: Stable workflow
+name: Release workflow
 
 on:
  push:
@@ -24,6 +24,7 @@ jobs:
         version: $GCP_SDK_VERSION
         project_id: $GCP_PROJECT_ID
         service_account_key: ${{ secrets.GCP_SA_KEY }}
+    - name: Setup Docker
       run: |
         gcloud auth configure-docker
     - name: Pull Image
@@ -37,7 +38,7 @@ jobs:
         docker push ${IMAGE_FULLNAME}:${GITHUB_REF##*/}
 
   deploy:
-    needs: [tag, pre-release]
+    needs: [tag]
     runs-on: ubuntu-18.04
     steps:
       - name: Checkout Code

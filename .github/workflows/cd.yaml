@@ -4,7 +4,7 @@ on:
   # Only run after the CI workflow finished.
   workflow_run:
     workflows: ["CI workflow"]
-    branches: [main]
+    branches: [master]
     types:
       - completed
 
