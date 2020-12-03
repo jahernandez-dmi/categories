@@ -1,9 +1,10 @@
-ARG NODE_VERSION=10
+ARG NODE_VERSION=12
 FROM node:${NODE_VERSION} as builder
 
 COPY package.json package-lock.json* ./
 RUN npm install --no-optional && npm cache clean --force
 
+# FINAL IMAGGE
 FROM node:${NODE_VERSION}-alpine as release
 
 ARG TINI_VERSION=v0.19.0
@@ -15,5 +16,5 @@ COPY --from=builder node_modules .
 
 USER node
 ENTRYPOINT ["/tini", "--"]
-CMD ["node", "index.js"]
+CMD ["node", "start"]
 

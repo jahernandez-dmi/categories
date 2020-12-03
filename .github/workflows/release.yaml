@@ -1,9 +1,9 @@
-name: Release workflow
+name: Stable workflow
 
-#on:
-#  push:
-#    tags:
-#    - release/**
+on:
+ push:
+   tags:
+   - release/**
 
 env:
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
@@ -12,50 +12,60 @@ env:
   GCP_GKE_CLUSTER_REGION: us-central1
   IMAGE_NAME: my-service
   COMMIT_SHA: ${{ github.sha }}
-  IMAGE_FULLNAME: gcr.io/${GCP_PROJECT_ID}/${IMAGE_NAME}
+  IMAGE_FULLNAME: gcr.io/${{ env.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}
 
 jobs:
-  build:
+  tag:
     runs-on: ubuntu-18.04
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
     - name: Set Up SDK
       uses: google-github-actions/setup-gcloud@master
-        with:
-          version: $GCP_SDK_VERSION
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          project_id: $GCP_PROJECT_ID
+      with:
+        version: $GCP_SDK_VERSION
+        project_id: $GCP_PROJECT_ID
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
       run: |
         gcloud auth configure-docker
-    - name: Build Image
+    - name: Pull Image
       run: |
-        docker build -t ${IMAGE_FULLNAME}:${COMMIT_SHA}
+        docker pull ${IMAGE_FULLNAME}:${COMMIT_SHA}
     - name: Tag Image
       run: |
         docker tag ${IMAGE_FULLNAME}:${COMMIT_SHA} ${IMAGE_FULLNAME}:${GITHUB_REF##*/}
     - name: Push Image
       run: |
-        docker push ${IMAGE_FULLNAME}:${COMMIT_SHA} && docker push ${IMAGE_FULLNAME}:${GITHUB_REF##*/}
-      
+        docker push ${IMAGE_FULLNAME}:${GITHUB_REF##*/}
+
   deploy:
-    needs: [build]
+    needs: [tag, pre-release]
     runs-on: ubuntu-18.04
     steps:
-    - name: Get GKE Credentials
-      uses: google-github-actions/get-gke-credentials@main
-      with:
-        cluster_name: $GCP_GKE_CLUSTER_NAME
-        location: $GCP_GKE_LOCATION
-        credentials: ${{ secrets.GCP_SA_KEY }}
-        project_id: $GCP_PROJECT_ID
-    - name: Add Helm Repo
-      run: |
-        helm repo add ${REPO_NAME} ${REPO_URL}
-    - name: Helm Update
-      run: |
-        helm update
-    - name: Helm Upgrade
-      run: |
-        helm upgrade --install ${CHART_NAME} --version ${CHART_VERSION} -f values.yaml
-
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Get GKE Credentials
+        uses: google-github-actions/get-gke-credentials@main
+        with:
+          cluster_name: ${{ env.GCP_GKE_CLUSTER_NAME }}
+          location: ${{ env.GCP_GKE_CLUSTER_REGION }}
+          credentials: ${{ env.GCP_SA_KEY }}
+          project_id: ${{ env.GCP_PROJECT_ID }}
+      - name: Setup Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: ${{ env.HELM_VERSION }}
+      - name: Checkout common-chart
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ env.HELM_REPO }}
+          token: ${{ secrets.REPO_PAT }}
+          path: ${{ env.HELM_PATH }}
+      - name: Upgrade Helm Chart
+        run: |
+          helm upgrade --install --wait \
+            --values helm/values-stage.yaml \
+            --set-string image.repository=${IMAGE_REPOSITORY} \
+            --set-string image.tag=${COMMIT_SHA} \
+            --namespace ${GCP_GKE_CLUSTER_NAMESPACE} \
+            --timeout ${HELM_INSTALL_TIMEOUT} \
+            ${HELM_RELEASE_NAME} \
+            ${HELM_PATH}
