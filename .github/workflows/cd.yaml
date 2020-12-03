@@ -37,7 +37,7 @@ jobs:
     if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-18.04
     env:
-      IMAGE_TAG: ${IMAGE_REPOSITORY}/${IMAGE_NAME}:${COMMIT_SHA}
+      IMAGE_TAG: ${{ env.IMAGE_REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.COMMIT_SHA}}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
