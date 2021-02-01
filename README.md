@@ -164,3 +164,34 @@ The following variables must be defined/overwritten so that the service can work
 | CT_CLIENT_SECRET          | commercetools client secret   | -                               |
 | CT_SCOPE                  | commercetools scope           | -                               |
 | GC_PROJECT_ID             | The Google Cloud project id   | -                               |
+
+## Container notes
+If you are running the image in a containerized environment without any proxy (such as istio-proxy),
+you must allow, in the Fastify server, requests from any source by changing the varialbe HOST to 0.0.0.0
+
+# Local development
+### Install dependencies
+```shell
+npm install
+```
+### Run linter
+```shell
+npm run lint --fix
+```
+### Start server
+```shell
+npm run start-dev
+```
+### Unit tests
+```shell
+npm run test
+```
+### With Docker
+```shell
+docker build -t devgurus/fastify-microservice-template .
+docker run -it --entrypoint sh -p 4444:4444 --env HOST=0.0.0.0 devgurus/fastify-microservice-template
+```
+### Example request
+```shell
+curl --location --request GET 'http://localhost:4444/?queryOne=test'
+```
