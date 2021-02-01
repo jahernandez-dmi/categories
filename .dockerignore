@@ -13,16 +13,19 @@
 # limitations under the License.
 
 node_modules
-.dockerignore
-Dockerfile
 npm-debug.log
 .git
 .hg
 .svn
 .DS_Store
+.dockerignore
+Dockerfile
 helm
 coverage
-docs
-bitbucket-pipelines.yml
-README.md
 sonar-project.properties
+docs
+README.md
+bitbucket-pipelines.yml
+.gitlab-ci.yaml
+.github
+.markdown-lint.yaml

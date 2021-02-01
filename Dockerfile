@@ -1,20 +1,25 @@
 ARG NODE_VERSION=12
-FROM node:${NODE_VERSION} as builder
 
-COPY package.json package-lock.json* ./
-RUN npm install --no-optional && npm cache clean --force
+FROM node:${NODE_VERSION} as base
+WORKDIR /opt/node_app
+COPY package*.json ./
 
-# FINAL IMAGGE
-FROM node:${NODE_VERSION}-alpine as release
+FROM base as dependencies
+RUN npm install
 
-ARG TINI_VERSION=v0.19.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
-RUN chmod +x /tini
+FROM dependencies as test
+COPY . .
+RUN npm run test
 
-WORKDIR /home/node/app
-COPY --from=builder node_modules .
+FROM base as release-dependencies
+RUN npm set progress=false      &&\
+    npm config set depth 0      &&\
+    npm ci --only=production    &&\
+    npm cache clean --force
 
+FROM node:${NODE_VERSION}-alpine AS release
 USER node
-ENTRYPOINT ["/tini", "--"]
-CMD ["node", "start"]
-
+WORKDIR /opt/node_app
+COPY --from=release-dependencies /opt/node_app/ .
+COPY . .
+CMD [ "node", "index.js" ]
