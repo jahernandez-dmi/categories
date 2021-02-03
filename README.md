@@ -1,4 +1,3 @@
-
 # Overview
 
 This is a template for microservices using [Fastify](https://github.com/fastify/fastify) framework.
@@ -169,7 +168,9 @@ The following variables must be defined/overwritten so that the service can work
 If you are running the image in a containerized environment without any proxy (such as istio-proxy),
 you must allow, in the Fastify server, requests from any source by changing the varialbe HOST to 0.0.0.0
 
-# Local development
+## Local development
+You can run the module in your local environment
+
 ### Install dependencies
 ```shell
 npm install

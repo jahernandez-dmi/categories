@@ -1,0 +1,4 @@
+include:
+  - project: 'devgurus/development/templates/lint/markdown'
+    ref: master
+    file: 'template/.gitlab-ci-template.yml'
