@@ -1,4 +1,14 @@
+---
 include:
   - project: 'devgurus/development/templates/lint/markdown'
     ref: master
     file: 'template/.gitlab-ci-template.yml'
+  - project: 'devgurus/development/templates/lint/yaml'
+    ref: master
+    file: 'template/.gitlab-ci-template.yml'
+  - project: 'devgurus/development/templates/build/container'
+    ref: master
+    file: 'template/.gitlab-ci-template.yml'
+
+variables:
+  YAMLLINT_OPTS: "-c .yamllint-config.yaml -f colored"

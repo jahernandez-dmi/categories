@@ -1,0 +1,10 @@
+---
+# https://yamllint.readthedocs.io/en/stable/configuration.html #
+extends: default
+
+ignore: |
+  bitbucket-pipelines.yml
+
+rules:
+  line-length:
+    max: 120

@@ -7,7 +7,7 @@ COPY package*.json ./
 FROM base as dependencies
 RUN npm install
 
-FROM dependencies as test
+FROM dependencies as unit-tests
 COPY . .
 RUN npm run test
 
