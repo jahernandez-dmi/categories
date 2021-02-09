@@ -1,0 +1,12 @@
+ARG NODE_VERSION=12
+
+FROM node:${NODE_VERSION} as base
+WORKDIR /opt/node_app
+COPY package*.json ./
+
+FROM base as dependencies
+RUN npm install
+
+FROM dependencies as unit-tests
+COPY . .
+RUN npm run test

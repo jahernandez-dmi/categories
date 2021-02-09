@@ -4,13 +4,6 @@ FROM node:${NODE_VERSION} as base
 WORKDIR /opt/node_app
 COPY package*.json ./
 
-FROM base as dependencies
-RUN npm install
-
-FROM dependencies as unit-tests
-COPY . .
-RUN npm run test
-
 FROM base as release-dependencies
 RUN npm set progress=false      &&\
     npm config set depth 0      &&\
