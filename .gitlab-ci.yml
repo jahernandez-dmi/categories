@@ -9,6 +9,42 @@ include:
   - project: 'devgurus/development/templates/build/container'
     ref: master
     file: 'template/.gitlab-ci-template.yml'
+  - project: 'devgurus/development/templates/audit/dependency-check'
+    ref: master
+    file: 'template/.gitlab-ci-template.yml'
+
+stages:
+  - lint
+  - build
+  - test
+  - audit
+  - deploy
 
 variables:
   YAMLLINT_OPTS: "-c .yamllint-config.yaml -f colored"
+
+dependency-scan:
+  allow_failure: true
+
+develop:
+  stage: deploy
+  script:
+    - echo "Deploying to develop environment."
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+staging:
+  stage: deploy
+  script:
+    - echo "Deploying to staging environment."
+  rules:
+    # https://semver.org/spec/v2.0.0.html: tag release/v0.1.2
+    - if: $CI_COMMIT_TAG =~ /^release\/v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
+
+production:
+  stage: deploy
+  script:
+    - echo "Deploying to production environment."
+  rules:
+    # https://semver.org/spec/v2.0.0.html: tag stable/v0.1.2
+    - if: $CI_COMMIT_TAG =~ /^stable\/v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
