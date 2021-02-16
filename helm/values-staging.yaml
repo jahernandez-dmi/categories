@@ -1,0 +1,39 @@
+# Override the Chart name, used as suffix (Release-chart)
+#nameOverride: "your-ms"
+
+# Override the endpoint
+# relativePathOverride: "test"
+# versionOverride: "v1"
+
+resources:
+  limits:
+    cpu: 1
+    memory: 1536Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+image:
+  repository: registry.gitlab.com/devgurus/development/templates/fastify-microservice-template
+  tag: latest
+  pullPolicy: IfNotPresent
+
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 50
+  targetMemoryUtilizationPercentage: 50
+  # TODO request at 80% targetCPUUtilizationPercentage: 50
+
+istio:
+  gateways:
+    # Modify with the proper istio gateway
+    - istio-tls-gateway
+  corsPolicy:
+    allowOrigins:
+      - regex: "."
+
+jwt:
+  policyEnabled: false

@@ -51,6 +51,8 @@ develop:
     - helm upgrade --install --wait --namespace $GCP_GKE_CLUSTER_NAMESPACE --timeout 5m
       --set-string image.tag=${CI_COMMIT_SHA:0:8} $HELM_OPTS $HELM_RELEASE_NAME $HELM_PATH
   rules:
+    - if: $CI_PROJECT_NAME == "fastify-microservice-template"
+      when: never
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 staging:
