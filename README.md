@@ -163,6 +163,12 @@ The following variables must be defined/overwritten so that the service can work
 | CT_CLIENT_SECRET          | commercetools client secret   | -                               |
 | CT_SCOPE                  | commercetools scope           | -                               |
 | GC_PROJECT_ID             | The Google Cloud project id   | -                               |
+| DEPLOY_TOKEN_USERNAME     | Token to download image       | -                               |
+| DEPLOY_TOKEN_PASSWORD     | Token to download image       | -                               |
+| GCP_GKE_CLUSTER_NAME      | GKE cluster name              | -                               |
+| GCP_GKE_CLUSTER_NAMESPACE | GKE cluster namespace         | -                               |
+| GCP_PROJECT_ID            | The Google Cloud project id   | -                               |
+| GCP_REGION                | GKE cluster region            | -                               |
 
 ## Container notes
 If you are running the image in a containerized environment without any proxy (such as istio-proxy),
