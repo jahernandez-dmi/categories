@@ -1,5 +1,5 @@
 # Override the Chart name, used as suffix (Release-chart)
-#nameOverride: "your-ms"
+nameOverride: "ct-acc-ms"
 
 # Override the endpoint
 # relativePathOverride: "test"
