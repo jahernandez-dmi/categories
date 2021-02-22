@@ -22,7 +22,6 @@ stages:
 
 variables:
   YAMLLINT_OPTS: "-c .yamllint-config.yaml -f colored"
-  HELM_VERSION: 3.5.2
   HELM_RESPOSITORY: "gitlab.com/devgurus/development/templates/helm-microservice-chart.git"
   HELM_PATH: "helm/helm-microservice-chart"
   HELM_RELEASE_NAME: ${CI_PROJECT_NAME}-v1
@@ -33,19 +32,22 @@ dependency-scan:
 develop:
   image: devth/helm:v$HELM_VERSION
   stage: deploy
-  environment:
-    name: dev
-  before_script:
-    - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-    - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
-      --region $GCP_REGION --project $GCP_PROJECT_ID
+  environment: develop
   variables:
+    GCP_GKE_CLUSTER_NAME: $GCP_GKE_CLUSTER_NAME_DEV
+    GCP_REGION: $GCP_REGION_DEV
+    GCP_PROJECT_ID: $GCP_PROJECT_ID_DEV
+    GCP_GKE_CLUSTER_NAMESPACE: $GCP_GKE_CLUSTER_NAMESPACE_DEV
     HELM_OPTS:
       --values helm/values-$CI_ENVIRONMENT_NAME.yaml
       --set-string image.repository=$CI_REGISTRY_IMAGE
       --set-string image.pullSecret.registry=$CI_REGISTRY
       --set-string image.pullSecret.username=$DEPLOY_TOKEN_USERNAME
       --set-string image.pullSecret.password=$DEPLOY_TOKEN_PASSWORD
+  before_script:
+    - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+    - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
+      --region $GCP_REGION --project $GCP_PROJECT_ID
   script:
     - git clone https://gitlab-ci-token:$CI_JOB_TOKEN@$HELM_RESPOSITORY $HELM_PATH
     - helm upgrade --install --wait --namespace $GCP_GKE_CLUSTER_NAMESPACE --timeout 5m
@@ -58,19 +60,22 @@ develop:
 staging:
   image: devth/helm:v$HELM_VERSION
   stage: deploy
-  environment:
-    name: staging
-  before_script:
-    - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-    - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
-      --region $GCP_REGION --project $GCP_PROJECT_ID
+  environment: staging
   variables:
+    GCP_GKE_CLUSTER_NAME: $GCP_GKE_CLUSTER_NAME_STG
+    GCP_REGION: $GCP_REGION_STG
+    GCP_PROJECT_ID: $GCP_PROJECT_ID_STG
+    GCP_GKE_CLUSTER_NAMESPACE: $GCP_GKE_CLUSTER_NAMESPACE_STG
     HELM_OPTS:
       --values helm/values-$CI_ENVIRONMENT_NAME.yaml
       --set-string image.repository=$CI_REGISTRY_IMAGE
       --set-string image.pullSecret.registry=$CI_REGISTRY
       --set-string image.pullSecret.username=$DEPLOY_TOKEN_USERNAME
       --set-string image.pullSecret.password=$DEPLOY_TOKEN_PASSWORD
+  before_script:
+    - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+    - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
+      --region $GCP_REGION --project $GCP_PROJECT_ID
   script:
     - git clone https://gitlab-ci-token:$CI_JOB_TOKEN@$HELM_RESPOSITORY $HELM_PATH
     - helm upgrade --install --wait --namespace $GCP_GKE_CLUSTER_NAMESPACE --timeout 5m
@@ -82,19 +87,22 @@ staging:
 production:
   image: devth/helm:v$HELM_VERSION
   stage: deploy
-  environment:
-    name: prod
-  before_script:
-    - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-    - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
-      --region $GCP_REGION --project $GCP_PROJECT_ID
+  environment: production
   variables:
+    GCP_GKE_CLUSTER_NAME: $GCP_GKE_CLUSTER_NAME_PROD
+    GCP_REGION: $GCP_REGION_PROD
+    GCP_PROJECT_ID: $GCP_PROJECT_ID_PROD
+    GCP_GKE_CLUSTER_NAMESPACE: $GCP_GKE_CLUSTER_NAMESPACE_PROD
     HELM_OPTS:
       --values helm/values-$CI_ENVIRONMENT_NAME.yaml
       --set-string image.repository=$CI_REGISTRY_IMAGE
       --set-string image.pullSecret.registry=$CI_REGISTRY
       --set-string image.pullSecret.username=$DEPLOY_TOKEN_USERNAME
       --set-string image.pullSecret.password=$DEPLOY_TOKEN_PASSWORD
+  before_script:
+    - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+    - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
+      --region $GCP_REGION --project $GCP_PROJECT_ID
   script:
     - git clone https://gitlab-ci-token:$CI_JOB_TOKEN@$HELM_RESPOSITORY $HELM_PATH
     - helm upgrade --install --wait --namespace $GCP_GKE_CLUSTER_NAMESPACE --timeout 5m
