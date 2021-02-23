@@ -29,7 +29,7 @@ autoscaling:
 
 istio:
   gateways:
-    - bookinfo-gateway
+    - ct-acc-tls-istio-gateway
   corsPolicy:
     allowOrigins:
       - regex: "."
