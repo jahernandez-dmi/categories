@@ -22,9 +22,12 @@ stages:
 
 variables:
   YAMLLINT_OPTS: "-c .yamllint-config.yaml -f colored"
-  HELM_RESPOSITORY: "gitlab.com/devgurus/development/templates/helm-microservice-chart.git"
-  HELM_PATH: "helm/helm-microservice-chart"
+  HELM_RESPOSITORY: "registry.gitlab.com/devgurus/development/templates/helm-microservice-chart"
+  HELM_CHART_VERSION: "0.1.0"
+  HELM_CHART_NAME: "helm-microservice-chart"
+  HELM_PATH: "helm"
   HELM_RELEASE_NAME: ${CI_PROJECT_NAME}-v1
+  HELM_EXPERIMENTAL_OCI: 1
 
 dependency-scan:
   allow_failure: true
@@ -49,9 +52,11 @@ develop:
     - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
       --region $GCP_GKE_CLUSTER_LOCATION --project $GCP_PROJECT_ID
   script:
-    - git clone https://gitlab-ci-token:$CI_JOB_TOKEN@$HELM_RESPOSITORY $HELM_PATH
+    - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - helm chart pull $HELM_RESPOSITORY:$HELM_CHART_VERSION
+    - helm chart export $HELM_RESPOSITORY:$HELM_CHART_VERSION -d $HELM_PATH
     - helm upgrade --install --wait --namespace $GCP_GKE_CLUSTER_NAMESPACE --timeout 5m
-      --set-string image.tag=${CI_COMMIT_SHA:0:8} $HELM_OPTS $HELM_RELEASE_NAME $HELM_PATH
+      --set-string image.tag=${CI_COMMIT_SHA:0:8} $HELM_OPTS $HELM_RELEASE_NAME $HELM_PATH/$HELM_CHART_NAME
   rules:
     - if: $CI_PROJECT_NAME == "fastify-microservice-template"
       when: never
@@ -77,9 +82,11 @@ staging:
     - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
       --region $GCP_GKE_CLUSTER_LOCATION --project $GCP_PROJECT_ID
   script:
-    - git clone https://gitlab-ci-token:$CI_JOB_TOKEN@$HELM_RESPOSITORY $HELM_PATH
+    - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - helm chart pull $HELM_RESPOSITORY:$HELM_CHART_VERSION
+    - helm chart export $HELM_RESPOSITORY:$HELM_CHART_VERSION -d $HELM_PATH
     - helm upgrade --install --wait --namespace $GCP_GKE_CLUSTER_NAMESPACE --timeout 5m
-      --set-string image.tag=${CI_COMMIT_SHA:0:8} $HELM_OPTS $HELM_RELEASE_NAME $HELM_PATH
+      --set-string image.tag=${CI_COMMIT_SHA:0:8} $HELM_OPTS $HELM_RELEASE_NAME $HELM_PATH/$HELM_CHART_NAME
   rules:
     # https://semver.org/spec/v2.0.0.html: tag release/v0.1.2
     - if: $CI_COMMIT_TAG =~ /^release\/v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
@@ -104,9 +111,11 @@ production:
     - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
       --region $GCP_GKE_CLUSTER_LOCATION --project $GCP_PROJECT_ID
   script:
-    - git clone https://gitlab-ci-token:$CI_JOB_TOKEN@$HELM_RESPOSITORY $HELM_PATH
+    - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - helm chart pull $HELM_RESPOSITORY:$HELM_CHART_VERSION
+    - helm chart export $HELM_RESPOSITORY:$HELM_CHART_VERSION -d $HELM_PATH
     - helm upgrade --install --wait --namespace $GCP_GKE_CLUSTER_NAMESPACE --timeout 5m
-      --set-string image.tag=${CI_COMMIT_SHA:0:8} $HELM_OPTS $HELM_RELEASE_NAME $HELM_PATH
+      --set-string image.tag=${CI_COMMIT_SHA:0:8} $HELM_OPTS $HELM_RELEASE_NAME $HELM_PATH/$HELM_CHART_NAME
   rules:
     # https://semver.org/spec/v2.0.0.html: tag stable/v0.1.2
     - if: $CI_COMMIT_TAG =~ /^stable\/v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
