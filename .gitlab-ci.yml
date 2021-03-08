@@ -35,7 +35,7 @@ develop:
   environment: develop
   variables:
     GCP_GKE_CLUSTER_NAME: $GCP_GKE_CLUSTER_NAME_DEV
-    GCP_REGION: $GCP_REGION_DEV
+    GCP_GKE_CLUSTER_LOCATION: $GCP_GKE_CLUSTER_LOCATION_DEV
     GCP_PROJECT_ID: $GCP_PROJECT_ID_DEV
     GCP_GKE_CLUSTER_NAMESPACE: $GCP_GKE_CLUSTER_NAMESPACE_DEV
     HELM_OPTS:
@@ -47,7 +47,7 @@ develop:
   before_script:
     - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
     - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
-      --region $GCP_REGION --project $GCP_PROJECT_ID
+      --region $GCP_GKE_CLUSTER_LOCATION --project $GCP_PROJECT_ID
   script:
     - git clone https://gitlab-ci-token:$CI_JOB_TOKEN@$HELM_RESPOSITORY $HELM_PATH
     - helm upgrade --install --wait --namespace $GCP_GKE_CLUSTER_NAMESPACE --timeout 5m
@@ -63,7 +63,7 @@ staging:
   environment: staging
   variables:
     GCP_GKE_CLUSTER_NAME: $GCP_GKE_CLUSTER_NAME_STG
-    GCP_REGION: $GCP_REGION_STG
+    GCP_GKE_CLUSTER_LOCATION: $GCP_GKE_CLUSTER_LOCATION_STG
     GCP_PROJECT_ID: $GCP_PROJECT_ID_STG
     GCP_GKE_CLUSTER_NAMESPACE: $GCP_GKE_CLUSTER_NAMESPACE_STG
     HELM_OPTS:
@@ -75,7 +75,7 @@ staging:
   before_script:
     - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
     - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
-      --region $GCP_REGION --project $GCP_PROJECT_ID
+      --region $GCP_GKE_CLUSTER_LOCATION --project $GCP_PROJECT_ID
   script:
     - git clone https://gitlab-ci-token:$CI_JOB_TOKEN@$HELM_RESPOSITORY $HELM_PATH
     - helm upgrade --install --wait --namespace $GCP_GKE_CLUSTER_NAMESPACE --timeout 5m
@@ -90,7 +90,7 @@ production:
   environment: production
   variables:
     GCP_GKE_CLUSTER_NAME: $GCP_GKE_CLUSTER_NAME_PROD
-    GCP_REGION: $GCP_REGION_PROD
+    GCP_GKE_CLUSTER_LOCATION: $GCP_GKE_CLUSTER_LOCATION_PROD
     GCP_PROJECT_ID: $GCP_PROJECT_ID_PROD
     GCP_GKE_CLUSTER_NAMESPACE: $GCP_GKE_CLUSTER_NAMESPACE_PROD
     HELM_OPTS:
@@ -102,7 +102,7 @@ production:
   before_script:
     - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
     - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
-      --region $GCP_REGION --project $GCP_PROJECT_ID
+      --region $GCP_GKE_CLUSTER_LOCATION --project $GCP_PROJECT_ID
   script:
     - git clone https://gitlab-ci-token:$CI_JOB_TOKEN@$HELM_RESPOSITORY $HELM_PATH
     - helm upgrade --install --wait --namespace $GCP_GKE_CLUSTER_NAMESPACE --timeout 5m
