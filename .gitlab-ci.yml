@@ -12,6 +12,9 @@ include:
   - project: 'devgurus/development/templates/audit/dependency-check'
     ref: master
     file: 'template/.gitlab-ci-template.yml'
+  - project: 'devgurus/development/templates/audit/trivy-container-scanner'
+    ref: master
+    file: 'template/.gitlab-ci-template.yml'
 
 stages:
   - lint
