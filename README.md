@@ -170,6 +170,9 @@ The following variables must be defined/overwritten so that the service can work
 | GCP_PROJECT_ID            | The Google Cloud project id   | -                               |
 | GCP_REGION                | GKE cluster region            | -                               |
 
+### Important note
+Create environments to reuse the same variables and create the deployment tokens in each project
+
 ## Container notes
 If you are running the image in a containerized environment without any proxy (such as istio-proxy),
 you must allow, in the Fastify server, requests from any source by changing the varialbe HOST to 0.0.0.0

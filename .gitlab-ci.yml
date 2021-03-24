@@ -6,6 +6,9 @@ include:
   - project: 'devgurus/development/templates/lint/yaml'
     ref: master
     file: 'template/.gitlab-ci-template.yml'
+  - project: 'devgurus/development/templates/lint/node'
+    ref: master
+    file: 'template/.gitlab-ci-template.yml'
   - project: 'devgurus/development/templates/build/container'
     ref: master
     file: 'template/.gitlab-ci-template.yml'
