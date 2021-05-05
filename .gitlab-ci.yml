@@ -62,9 +62,13 @@ develop:
       --set-string image.pullSecret.registry=$CI_REGISTRY
       --set-string image.pullSecret.username=$DEPLOY_TOKEN_USERNAME
       --set-string image.pullSecret.password=$DEPLOY_TOKEN_PASSWORD
-      # Uncomment if we want jwt policy
-      # --set-string jwt.issuer=${JWT_ISSUER_DEV}
-      # --set-string jwt.jwksUri=https://www.googleapis.com/service_accounts/v1/jwk/${JWT_ISSUER_DEV}
+      --set-string environmentVariables.CT_PROJECT_KEY=${CT_PROJECT_KEY_DEV}
+      --set-string environmentVariables.CT_AUTH_URL=${CT_AUTH_URL}
+      --set-string environmentVariables.CT_API_URL=${CT_API_URL}
+      --set-string environmentVariables.CT_CLIENT_ID=${CT_CLIENT_ID}
+      --set-string secret.env.CT_CLIENT_SECRET=${CT_CLIENT_SECRET}
+      --set-string jwt.issuer=${JWT_ISSUER_DEV}
+      --set-string jwt.jwksUri=https://www.googleapis.com/service_accounts/v1/jwk/${JWT_ISSUER_DEV}
 
   before_script:
     - gcloud auth activate-service-account --key-file=$CLOUD_SERVICE_KEY

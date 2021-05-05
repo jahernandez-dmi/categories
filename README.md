@@ -1,6 +1,4 @@
-# Overview
-
-This is a template for microservices using [Fastify](https://github.com/fastify/fastify) framework.
+# Categories API Server
 
 ## TECHNOLOGIES
   
@@ -13,6 +11,44 @@ This is a template for microservices using [Fastify](https://github.com/fastify/
 -   **[Docker](https://www.docker.com/)**: For container generation
 -   **[Bitbucket Pipelines](https://bitbucket.org/product/features/pipelines):** As CI
 -   **[SonarCloud](https://sonarcloud.io/)**: For static code analisys
+
+## AVAILABLE ENDPOINTS
+
+### GET CATEGORY BY ID
+
+> GET /:id
+
+Get category via ID
+
+### GET CATEGORY BY SLUG
+
+> GET /slug/:slug
+
+Get category via slug
+
+### FIND CATEGORIES
+
+> GET /
+
+Get categories
+
+### CREATE CATEGOY
+
+> POST /
+
+Create a new category
+
+### UPDATE CATEGORY
+
+> PUT /:id
+
+Update category
+
+### DELETE CATEGORY
+
+> DELETE /:id
+
+Delete a category
 
 ## PLUGINS
 
@@ -195,6 +231,27 @@ npm install
 ```shell
 npm run lint --fix
 ```
+### Run Spectral linter
+There are two ways to use the Spectral tool to validate the MS specification file:
+- If you are using VSCode, you can install the extension 'Spectral' and just by opening any .yml / .yaml file 
+the information about its correction will be displayed (for any other IDE the process should be similar).
+
+- Perform command line validation
+   To perform this validation, Spectral must be installed (https://meta.stoplight.io/docs/spectral/ZG9jOjYyMDc0Mw-installation) 
+   (It also can be installed as a dev dependency).
+
+Steps to permform the validation:
+
+- Generate the OpenAPI file ('swagger.yml is its default name)
+```shell
+   npm run swagger (the file will be generated in ./docs folder)
+```
+
+- To ensure that the file exists and its correct
+```shell
+   test -f ./docs/swagger.yml && spectral lint ./docs/swagger.yml || false
+```
+
 ### Start server
 ```shell
 npm run start-dev
@@ -211,24 +268,4 @@ docker run -it --entrypoint sh -p 4444:4444 --env HOST=0.0.0.0 devgurus/fastify-
 ### Example request
 ```shell
 curl --location --request GET 'http://localhost:4444/?queryOne=test'
-```
-
-### Run Spectral linter
-There are two ways to use the Spectral tool to validate the MS specification file:
-- If you are using VSCode, you can install the extension 'Spectral' and just by opening any .yml / .yaml file 
-the information about its correction will be displayed (for any other IDE the process should be similar).
-
-- Perform command line validation
-   To perform this validation, Spectral must be installed (https://meta.stoplight.io/docs/spectral/ZG9jOjYyMDc0Mw-installation) 
-   (It also can be installed as a dev dependency).
-
-Steps to permform the validation:
-
-- Generate the OpenAPI file ('swagger.yml is its default name)
-```shell
-   npm run swagger (the file will be generated in ./docs folder)
-```
-- To ensure that the file exists and its correct
-```shell
-   test -f ./docs/swagger.yml && spectral lint ./docs/swagger.yml || false
 ```

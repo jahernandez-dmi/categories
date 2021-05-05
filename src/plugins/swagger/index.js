@@ -7,8 +7,8 @@ module.exports = fastifyPlugin((fastify, opts, next) => {
     routePrefix: '/docs',
     swagger: {
       info: {
-        title: 'Template Microservice',
-        description: 'Template Microservice description',
+        title: 'Categories Microservice',
+        description: 'Categories Microservice description',
         version: '1.0.0',
         contact: {
           name: 'API Support',
@@ -17,15 +17,15 @@ module.exports = fastifyPlugin((fastify, opts, next) => {
         }
       },
       host: '127.0.0.1',
-      basePath: '/s/fastify-microservice-template/v1',
+      basePath: '/s/customers/v1',
       tags: [{ name: 'public' }, { name: 'private' }], // Private / Public tags refer to whether an operation needs authentication or not.
       schemes: ['https'],
       consumes: ['application/json'],
       produces: ['application/json'],
       securityDefinitions: {
-        apiKey: {
+        Bearer: {
           type: 'apiKey',
-          name: 'apiKey',
+          name: 'Authorization',
           in: 'header'
         }
       },

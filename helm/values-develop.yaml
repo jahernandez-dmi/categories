@@ -10,7 +10,7 @@ resources:
     cpu: 1
     memory: 1536Mi
   requests:
-    cpu: 200m
+    cpu: 0m
     memory: 256Mi
 
 image:
@@ -18,30 +18,38 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
-
 autoscaling:
   enabled: true
-  minReplicas: 3
-  maxReplicas: 10
+  minReplicas: 1
+  maxReplicas: 2
   targetCPUUtilizationPercentage: 50
   targetMemoryUtilizationPercentage: 50
   # TODO request at 80% targetCPUUtilizationPercentage: 50
 
 istio:
   gateways:
-    - bookinfo-gateway
+    - ct-acc-tls-istio-gateway
   corsPolicy:
     allowOrigins:
-      - regex: "."
+      - regex: '.'
+
+secret:
+  enabled: true
+  env: {}
+  CT_CLIENT_SECRET: 'dummy-scret'
 
 jwt:
-  policyEnabled: false
+  policyEnabled: true
   issuer: dummy-issuer
   jwksUri: dummy-jwksuri
   audiences: []
   forwardOriginalToken: true
   outputPayloadToHeader: "jwt-base-64"
-  rules: []
-    # - from:
-    #     - source:
-    #         requestPrincipals: ["*"]
+  rules:
+    - from:
+        - source:
+            requestPrincipals: ["*"]
+    - to:
+        - operation:
+            methods: ['GET']
+            paths: ["/", "/*", "/slug/*"]
