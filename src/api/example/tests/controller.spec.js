@@ -1,6 +1,8 @@
 jest.mock('../service');
 const Service = require('../service');
 
+const { createReplyMock } = require('../../../utils/test-utils');
+
 const controller = require('../controller')({
   config: {}
 });
@@ -19,18 +21,7 @@ describe('controller', () => {
       params: {},
       query: {}
     };
-    reply = {
-      code: jest.fn(code => {
-        return {
-          send: data => {
-            return { statusCode: code, body: data };
-          }
-        };
-      }),
-      send: jest.fn(data => {
-        return { statusCode: 200, body: data };
-      })
-    };
+    reply = createReplyMock();
   });
 
   afterEach(() => {
