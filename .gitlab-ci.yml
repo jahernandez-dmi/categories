@@ -56,7 +56,7 @@ develop:
       # Uncomment if we want jwt policy
       # --set-string jwt.issuer=${JWT_ISSUER_DEV}
       # --set-string jwt.jwksUri=https://www.googleapis.com/service_accounts/v1/jwk/${JWT_ISSUER_DEV}
-      
+
   before_script:
     - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
     - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
