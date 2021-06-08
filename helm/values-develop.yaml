@@ -36,3 +36,12 @@ istio:
 
 jwt:
   policyEnabled: false
+  issuer: dummy-issuer
+  jwksUri: dummy-jwksuri
+  audiences: []
+  forwardOriginalToken: true
+  outputPayloadToHeader: "jwt-base-64"
+  rules: []
+    # - from:
+    #     - source:
+    #         requestPrincipals: ["*"]

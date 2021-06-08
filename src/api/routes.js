@@ -1,6 +1,11 @@
 const schema = require('./example/schema');
+//UNCOMMENT IF JWT AUTH IS REQUIRED
+//const injectJwtAuth = require('../plugins/inject-jwt-auth');
 
 module.exports = async fastify => {
+  //UNCOMMENT IF JWT AUTH IS REQUIRED
+  //fastify.register(injectJwtAuth);
+
   const controller = require('./example/controller')(fastify);
 
   fastify.route({
