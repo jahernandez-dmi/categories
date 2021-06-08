@@ -53,6 +53,10 @@ develop:
       --set-string image.pullSecret.registry=$CI_REGISTRY
       --set-string image.pullSecret.username=$DEPLOY_TOKEN_USERNAME
       --set-string image.pullSecret.password=$DEPLOY_TOKEN_PASSWORD
+      # Uncomment if we want jwt policy
+      # --set-string jwt.issuer=${JWT_ISSUER_DEV}
+      # --set-string jwt.jwksUri=https://www.googleapis.com/service_accounts/v1/jwk/${JWT_ISSUER_DEV}
+      
   before_script:
     - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
     - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
@@ -84,8 +88,8 @@ staging:
       --set-string image.pullSecret.username=$DEPLOY_TOKEN_USERNAME
       --set-string image.pullSecret.password=$DEPLOY_TOKEN_PASSWORD
       # Uncomment if we want jwt policy
-      # --set-string jwt.issuer=${JWT_ISSUER_DEV}
-      # --set-string jwt.jwksUri=https://www.googleapis.com/service_accounts/v1/jwk/${JWT_ISSUER_DEV}
+      # --set-string jwt.issuer=${JWT_ISSUER_STG}
+      # --set-string jwt.jwksUri=https://www.googleapis.com/service_accounts/v1/jwk/${JWT_ISSUER_STG}
   before_script:
     - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
     - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
@@ -115,6 +119,9 @@ production:
       --set-string image.pullSecret.registry=$CI_REGISTRY
       --set-string image.pullSecret.username=$DEPLOY_TOKEN_USERNAME
       --set-string image.pullSecret.password=$DEPLOY_TOKEN_PASSWORD
+      # Uncomment if we want jwt policy
+      # --set-string jwt.issuer=${JWT_ISSUER_PROD}
+      # --set-string jwt.jwksUri=https://www.googleapis.com/service_accounts/v1/jwk/${JWT_ISSUER_PROD}
   before_script:
     - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
     - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
