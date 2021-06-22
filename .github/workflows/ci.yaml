@@ -4,7 +4,7 @@ on:
   pull_request:
   # We need to run it again on merge to main branch as we use squash commits.
   push:
-    branches: [master]
+    branches: [main]
 
 env:
   NODE_VERSION: 14
@@ -34,25 +34,21 @@ jobs:
           registry-url: 'https://npm.pkg.github.com'
       - name: Run npm install
         run: npm install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.PACKAGES_PAT }} # Personal Access Token to use packages from Github Registry
       - name: NPM lint
         run: npm run lint
       - name: Markdown Lint
         run: npm run lint-md
-      - name: Docker Lint
-        run: npm run lint-docker
       - name: Docker Hadolint
         run: |
           wget https://github.com/hadolint/hadolint/releases/download/v1.19.0/hadolint-Linux-x86_64 -O /tmp/hadolint
           chmod +x /tmp/hadolint
           /tmp/hadolint Dockerfile
-      - name: Json Lint
-        run: |
-          # Generate the list of json files since jsonlint does not support glob patterns.
-          git ls-files | grep ".json" | while read f; do ./node_modules/.bin/jsonlint $f -q; done
       - name: Yaml Lint
         run: |
           pip install yamllint
-          yamllint -c .yaml-lint.yaml .
+          yamllint -c .yamllint-config.yaml .
 
   test:
     runs-on: ubuntu-18.04
@@ -77,8 +73,33 @@ jobs:
           registry-url: 'https://npm.pkg.github.com'
       - name: Run npm install
         run: npm install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.PACKAGES_PAT }} # Personal Access Token to use packages from Github Registry
       - name: Run npm test
         run: npm test
+      - name: Save coverage artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: lcov
+          path: coverage/lcov.info
+
+  sonarcloud:
+    needs: test
+    name: SonarCloud
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Download coverage artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: lcov
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   audit:
     runs-on: ubuntu-18.04
@@ -103,5 +124,7 @@ jobs:
           registry-url: 'https://npm.pkg.github.com'
       - name: Run npm install
         run: npm install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.PACKAGES_PAT }} # Personal Access Token to use packages from Github Registry
       - name: Run npm audit
         run: npm audit

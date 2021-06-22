@@ -184,6 +184,13 @@ Create environments to reuse the same variables and create the deployment tokens
 If you are running the image in a containerized environment without any proxy (such as istio-proxy),
 you must allow, in the Fastify server, requests from any source by changing the varialbe HOST to 0.0.0.0
 
+## Sonarcloud integration
+After cloning this template follow the steps below to initiliaze and configure the project in SonarCloud.
+
+- Create project in SonarCloud dashboard https://sonarcloud.io/organizations/devgurusio/projects_management 
+- Add SONAR_TOKEN as a repo secret with the value provided by SonarCloud 
+- Update sonar.projectKey in sonar-project.properties with the key provided by SonarCloud
+
 ## Local development
 You can run the module in your local environment
 
@@ -205,9 +212,11 @@ npm run test
 ```
 ### With Docker
 ```shell
-docker build -t devgurus/fastify-microservice-template .
+docker build -t devgurus/fastify-microservice-template --build-arg NPM_TOKEN=CHANGEME .
 docker run -it --entrypoint sh -p 4444:4444 --env HOST=0.0.0.0 devgurus/fastify-microservice-template
 ```
+
+`NPM_TOKEN` should be replaced with a Github PAT (Personal Access Token) with the role `read packages`, necessary to access the Github Registry.
 ### Example request
 ```shell
 curl --location --request GET 'http://localhost:4444/?queryOne=test'
