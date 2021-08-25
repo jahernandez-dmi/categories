@@ -1,13 +1,12 @@
 const fastify = require('fastify');
-const config = require('../plugins/config');
-const health = require('../plugins/health');
-const swagger = require('../plugins/swagger');
-const metrics = require('../plugins/metrics');
-const errorHandler = require('../plugins/error-handler');
-const pubsub = require('../plugins/pubsub');
-const commercetools = require('../plugins/commercetools');
-
-const routes = require('../api/routes');
+const config = require('#plugins/config');
+const health = require('#plugins/health');
+const swagger = require('#plugins/swagger');
+const metrics = require('#plugins/metrics');
+const errorHandler = require('#plugins/error-handler');
+const pubsub = require('#plugins/pubsub');
+const commercetools = require('#plugins/commercetools');
+const routes = require('#routes');
 
 function index() {
   const Fastify = fastify({

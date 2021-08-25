@@ -10,7 +10,7 @@
 # CT_SCOPE                                      #
 #################################################
 
-image: node:10-slim
+image: node:14-slim
 clone:
   depth: 20
 options:
@@ -49,7 +49,7 @@ stepdefinitions:
         - tmp-image-src.docker
   - test: &test
       name: Test and Analyze
-      image: node:10-slim
+      image: node:14-slim
       caches:
         - node
         - sonar
@@ -66,7 +66,7 @@ stepdefinitions:
         - docker
       script:
         - docker load --input ./tmp-image-src.docker
-        - docker run --entrypoint="/bin/bash" $BITBUCKET_REPO_SLUG-src:${BITBUCKET_COMMIT:0:7} -c "npm audit"
+        - docker run --entrypoint="/bin/sh" $BITBUCKET_REPO_SLUG-src:${BITBUCKET_COMMIT:0:7} -c "npm audit"
   - publish: &publish
       name: Publish (push docker image)
       image: google/cloud-sdk

@@ -22,10 +22,15 @@
     "microservice"
   ],
   "engines": {
-    "node": ">=12.*"
+    "node": ">=14.*"
   },
   "author": "DevGurus.io",
   "license": "ISC",
+  "imports": {
+    "#plugins/*": "./src/plugins/*/index.js",
+    "#errors": "./src/errors/index.js",
+    "#routes": "./src/api/routes.js"
+  },
   "dependencies": {
     "@google-cloud/pubsub": "^2.13.0",
     "commercetools-entities-schemas": "^1.1.6",

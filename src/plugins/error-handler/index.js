@@ -1,6 +1,6 @@
 const fastifyPlugin = require('fastify-plugin');
 const statusCodes = require('http').STATUS_CODES;
-const { ctErrorMapping } = require('../../errors');
+const { ctErrorMapping } = require('#errors');
 
 const VALIDATION_ERROR = '001';
 
