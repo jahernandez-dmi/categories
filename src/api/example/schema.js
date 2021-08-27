@@ -49,6 +49,17 @@ const errorResponse = {
   required: ['errors']
 };
 
+const defaultResponse = {
+  '4XX': {
+    description: 'Client Error',
+    ...errorResponse
+  },
+  '5XX': {
+    description: 'Internal Server Error',
+    ...errorResponse
+  }
+};
+
 const methodSchema = {
   title: 'Method example',
   description: 'Method example descriptions',
@@ -71,8 +82,7 @@ const methodSchema = {
       },
       required: ['queryOne']
     },
-    '4xx': errorResponse,
-    '5xx': errorResponse
+    ...defaultResponse
   }
 };
 
@@ -95,8 +105,7 @@ const methodCTSchema = {
       required: [],
       additionalProperties: true
     },
-    '4xx': errorResponse,
-    '5xx': errorResponse
+    ...defaultResponse
   }
 };
 

@@ -9,8 +9,16 @@ module.exports = fastifyPlugin((fastify, opts, next) => {
       info: {
         title: 'Template Microservice',
         description: 'Template Microservice description',
-        version: '1.0.0'
+        version: '1.0.0',
+        contact: {
+          name: 'API Support',
+          url: 'http://www.example.com/support',
+          email: 'cta@devgurus.io'
+        }
       },
+      host: '127.0.0.1',
+      basePath: '/s/fastify-microservice-template/v1',
+      tags: [{ name: 'public' }, { name: 'private' }], // Private / Public tags refer to whether an operation needs authentication or not.
       schemes: ['https'],
       consumes: ['application/json'],
       produces: ['application/json'],

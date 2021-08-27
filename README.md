@@ -100,10 +100,6 @@ const Fastify = fastify({
 
 In order to validate schemas to use Commercetools valid payload, you need to use the library *commercetools-entities-schemas*. To see an example go to `src/api/example/`.
 
-### PusSub
-
-Plugin that decorates fastify with a PubSubService for publish and read messages to/from a Google Cloud topic
-
 ### Swagger
 
 Plugin for generate swagger documentation based on OpenApi v3
@@ -204,4 +200,24 @@ docker run -it --entrypoint sh -p 4444:4444 --env HOST=0.0.0.0 devgurus/fastify-
 ### Example request
 ```shell
 curl --location --request GET 'http://localhost:4444/?queryOne=test'
+```
+
+### Run Spectral linter
+There are two ways to use the Spectral tool to validate the MS specification file:
+- If you are using VSCode, you can install the extension 'Spectral' and just by opening any .yml / .yaml file 
+the information about its correction will be displayed (for any other IDE the process should be similar).
+
+- Perform command line validation
+   To perform this validation, Spectral must be installed (https://meta.stoplight.io/docs/spectral/ZG9jOjYyMDc0Mw-installation) 
+   (It also can be installed as a dev dependency).
+
+Steps to permform the validation:
+
+- Generate the OpenAPI file ('swagger.yml is its default name)
+```shell
+   npm run swagger (the file will be generated in ./docs folder)
+```
+- To ensure that the file exists and its correct
+```shell
+   test -f ./docs/swagger.yml && spectral lint ./docs/swagger.yml || false
 ```

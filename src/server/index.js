@@ -4,7 +4,6 @@ const health = require('#plugins/health');
 const swagger = require('#plugins/swagger');
 const metrics = require('#plugins/metrics');
 const errorHandler = require('#plugins/error-handler');
-const pubsub = require('#plugins/pubsub');
 const commercetools = require('#plugins/commercetools');
 const routes = require('#routes');
 
@@ -61,7 +60,6 @@ function index() {
   Fastify.register(health);
   Fastify.register(swagger);
   Fastify.register(errorHandler);
-  Fastify.register(pubsub);
   Fastify.register(commercetools);
   Fastify.register(metrics);
   Fastify.register(routes);

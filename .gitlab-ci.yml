@@ -9,6 +9,9 @@ include:
   - project: 'devgurus/development/templates/lint/node'
     ref: master
     file: 'template/.gitlab-ci-template.yml'
+  - project: 'devgurus/development/templates/lint/openapi'
+    ref: main
+    file: 'template/.gitlab-ci-template.yml'
   - project: 'devgurus/development/templates/build/container'
     ref: master
     file: 'template/.gitlab-ci-template.yml'
@@ -34,6 +37,9 @@ variables:
   HELM_PATH: "helm"
   HELM_RELEASE_NAME: ${CI_PROJECT_NAME}-v1
   HELM_EXPERIMENTAL_OCI: 1
+
+openapi-lint:
+  allow_failure: true
 
 dependency-scan:
   allow_failure: true
