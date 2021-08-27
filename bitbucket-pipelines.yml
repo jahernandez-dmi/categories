@@ -1,9 +1,12 @@
 image: node:14-slim
 clone:
-  depth: 20
+  depth: full # include the last commit
 options:
-  max-time: 30
+  max-time: 30 # maximum amount of minutes a step can execute
 definitions:
+  services:
+    docker:
+      memory: 512 # reduce memory for docker-in-docker to 512MB
   caches:
     sonar: /root/.sonar/cache
 
@@ -16,11 +19,10 @@ stepdefinitions:
       services:
         - docker
       script:
-        - apt-get update && apt-get install -y git=1:2.11.* --no-install-recommends
         - npm install --no-audit
-        - npm run lint
-        - npm run lint-md
-        - docker run --rm -i hadolint/hadolint:v1.17.3 < Dockerfile
+        - npm run lint # npm
+        - npm run lint-md  # markdown
+        - docker run --rm -i hadolint/hadolint:v1.17.3 < Dockerfile  # dockerfile
   - build: &build
       name: Build (docker image creation and and export)
       caches:
@@ -42,12 +44,14 @@ stepdefinitions:
         - node
         - sonar
       script:
-        - apt-get update && apt-get install -y unzip git
         - npm install --no-audit
         - npm test
         # Sonar Analysis move here to include test coverage
         - npm install -g sonarqube-scanner
-        - sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.branch.name=$BITBUCKET_BRANCH
+        - sonar-scanner -Dsonar.login=$SONAR_TOKEN
+          -Dsonar.organization=$SONAR_ORGANIZATION
+          -Dsonar.projectKey=$SONAR_PROJECT_KEY
+          -Dsonar.branch.name=$BITBUCKET_BRANCH
   - audit: &audit
       name: Audit (npm)
       services:
@@ -57,31 +61,44 @@ stepdefinitions:
         - docker run --entrypoint="/bin/sh" $BITBUCKET_REPO_SLUG-src:${BITBUCKET_COMMIT:0:7} -c "npm audit"
   - publish: &publish
       name: Publish (push docker image)
-      image: google/cloud-sdk
+      image: google/cloud-sdk:$CLOUD_SDK_VERSION-alpine
       caches:
         - docker
       script:
         - docker load --input ./tmp-image.docker
         - docker tag $BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7} gcr.io/$CLOUD_PROJECT_ID/$BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7}
+        # auth
         - echo $CLOUD_SERVICE_KEY > $HOME/gcloud-service-key.json
         - gcloud auth activate-service-account --key-file=$HOME/gcloud-service-key.json
-        - gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
+        - gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin $CI_REGISTRY
+        # push
         - docker push gcr.io/$CLOUD_PROJECT_ID/$BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7}
       services:
         - docker
   - deploy: &deploy
       name: Deploy
-      image: google/cloud-sdk:latest
-      deployment: production
+      image: devth/helm:v$HELM_VERSION
       script:
+        # vars
+        - HELM_RESPOSITORY="registry.gitlab.com/devgurus/development/templates/helm-microservice-chart"
+        - HELM_CHART_VERSION="0.1.0"
+        - HELM_CHART_NAME="helm-microservice-chart"
+        - HELM_PATH="helm/helm-microservice-chart"
+        - HELM_RELEASE_NAME=${CI_PROJECT_NAME}-v1
+        - HELM_EXPERIMENTAL_OCI=1
+        - CI_REGISTRY_IMAGE="gcr.io/$CLOUD_PROJECT_ID/$BITBUCKET_REPO_SLUG"
+        - GOOGLE_APPLICATION_CREDENTIALS="$CLOUD_SERVICE_KEY"
+        # auth
         - echo $CLOUD_SERVICE_KEY > $HOME/gcloud-service-key.json
         - gcloud auth activate-service-account --key-file=$HOME/gcloud-service-key.json
-        - gcloud --quiet config set project $CLOUD_PROJECT_ID
-        - gcloud --quiet config set compute/zone $GCLOUD_COMPUTE_ZONE
-        - gcloud --quiet container clusters get-credentials $K8S_CLUSTER_NAME
-        - echo "### Deploy to PROD "
-        - curl https://get.helm.sh/helm-v3.0.0-linux-amd64.tar.gz | tar -zxv && mv linux-amd64/helm /usr/local/bin/helm && helm version --client
-        - helm upgrade --install --wait $BITBUCKET_REPO_SLUG helm/$BITBUCKET_REPO_SLUG --values helm/$BITBUCKET_REPO_SLUG/values.yaml --set image.tag=${BITBUCKET_COMMIT:0:7} --set commercetools.client.secret=${CT_CLIENT_SECRET} --set commercetools.client.id=${CT_CLIENT_ID} --set commercetools.project_key=${CT_PROJECT_KEY} --set gc_project_id=${CLOUD_PROJECT_ID} --set commercetools.scope=${CT_SCOPE}
+        - gcloud container clusters get-credentials $K8_CLUSTER_NAME --region $K8_CLUSTER_LOCATION --project $CLOUD_PROJECT_ID
+        # Pull Helm OCI Image
+        - helm registry login -u $PAT_USERNAME -p $PAT_PASSWORD HELM_RESPOSITORY
+        - helm chart pull $HELM_RESPOSITORY:$HELM_CHART_VERSION
+        - helm chart export $HELM_RESPOSITORY:$HELM_CHART_VERSION -d $HELM_PATH
+        # Deploy using Helm
+        - helm upgrade --install --wait --namespace $K8_CLUSTER_NAMESPACE --timeout 5m
+          --set-string image.tag=${BITBUCKET_COMMIT:0:7} $HELM_OPTS $HELM_RELEASE_NAME HELM_PATH
 
 pipelines:
   default:
@@ -90,10 +107,57 @@ pipelines:
     - step: *test
     - step: *audit
   branches:
+    release/v*:
+      - step: *lint
+      - step: *build
+      - step: *test
+      - step: *audit
+      - step: *publish
+      - step:
+          <<: *deploy
+          deployment: staging
+          script:
+            - HELM_OPTS
+              --values helm/values-staging.yaml
+              --set-string image.repository=$CI_REGISTRY_IMAGE
+              --set-string image.pullSecret.registry=$CI_REGISTRY
+              --set-string environmentVariables.CT_PROJECT_KEY=${CT_PROJECT_KEY}
+              --set-string environmentVariables.CT_AUTH_URL=${CT_AUTH_URL}
+              --set-string environmentVariables.CT_API_URL=${CT_API_URL}
+              # Uncomment if we want jwt policy
+              #--set-string jwt.issuer=${JWT_ISSUER}
+              #--set-string jwt.jwksUri=https://www.googleapis.com/service_accounts/v1/jwk/${JWT_ISSUER}
     master:
       - step: *lint
       - step: *build
       - step: *test
       - step: *audit
       - step: *publish
-      - step: *deploy
+      - step:
+          <<: *deploy
+          deployment: development
+          script:
+            - HELM_OPTS
+              --values helm/values-dev.yaml
+              --set-string image.repository=$CI_REGISTRY_IMAGE
+              --set-string image.pullSecret.registry=$CI_REGISTRY
+              # Uncomment if we want jwt policy
+              #--set-string jwt.issuer=${JWT_ISSUER_}
+              #--set-string jwt.jwksUri=https://www.googleapis.com/service_accounts/v1/jwk/${JWT_ISSUER}
+    stable/v*:
+      - step: *lint
+      - step: *build
+      - step: *test
+      - step: *audit
+      - step: *publish
+      - step:
+          <<: *deploy
+          deployment: production
+          script:
+            - HELM_OPTS
+              --values helm/values-prod.yaml
+              --set-string image.repository=$CI_REGISTRY_IMAGE
+              --set-string image.pullSecret.registry=$CI_REGISTRY
+              # Uncomment if we want jwt policy
+              #--set-string jwt.issuer=${JWT_ISSUER}
+              #--set-string jwt.jwksUri=https://www.googleapis.com/service_accounts/v1/jwk/${JWT_ISSUER}
