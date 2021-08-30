@@ -63,6 +63,8 @@ const defaultResponse = {
 const methodSchema = {
   title: 'Method example',
   description: 'Method example descriptions',
+  operationId: 'MethodExample',
+  tags: ['private', 'public'],
   querystring: {
     type: 'object',
     properties: {
@@ -89,6 +91,8 @@ const methodSchema = {
 const methodCTSchema = {
   title: 'Method with ct request example',
   description: 'Method example descriptions',
+  operationId: 'MethodCTExample',
+  tags: ['private', 'public'],
   querystring: {
     type: 'object',
     properties: {
@@ -102,7 +106,6 @@ const methodCTSchema = {
       type: 'object',
       description: 'Method response example',
       items: product,
-      required: [],
       additionalProperties: true
     },
     ...defaultResponse

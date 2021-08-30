@@ -5,6 +5,7 @@ module.exports = fastifyPlugin((fastify, opts, next) => {
   const swaggerConfig = {
     exposeRoute: true,
     routePrefix: '/docs',
+    openapi: '3.1.0',
     swagger: {
       info: {
         title: 'Template Microservice',
