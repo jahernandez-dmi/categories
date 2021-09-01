@@ -6,17 +6,17 @@ on:
       - release/**
 
 env:
-  # GCP env variables
-  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-  GCP_SDK_VERSION: '319.0.0'
-  GCP_GKE_CLUSTER_NAME: my-gke-cluster  # Change me!
-  GCP_GKE_CLUSTER_REGION: us-central1   # Change me!
-  GCP_GKE_CLUSTER_NAMESPACE: default    # Change me!
+  # Cloud env variables
+  CLOUD_PROJECT_ID: ${{ secrets.CLOUD_PROJECT_ID }}
+  CLOUD_SERVICE_KEY: ${{ secrets.CLOUD_SERVICE_KEY }}
+  CLOUD_SDK_VERSION: '319.0.0'
+  K8S_CLUSTER_NAME: my-gke-cluster  # Change me!
+  K8S_CLUSTER_LOCATION: us-central1   # Change me!
+  K8S_CLUSTER_NAMESPACE: default    # Change me!
 
   # Docker image variables
   COMMIT_SHA: ${{ github.sha }}
-  IMAGE_REPOSITORY: gcr.io/${{ secrets.GCP_PROJECT_ID }}
+  IMAGE_REPOSITORY: gcr.io/${{ secrets.CLOUD_PROJECT_ID }}
   IMAGE_NAME: ${{ github.event.repository.name }}  # by default the image name will be the repo name
 
   # Helm variables
@@ -33,9 +33,9 @@ jobs:
       - name: Set Up SDK
         uses: google-github-actions/setup-gcloud@master
         with:
-          version: ${{ env.GCP_SDK_VERSION }}
-          project_id: ${{ env.GCP_PROJECT_ID }}
-          service_account_key: ${{ env.GCP_SA_KEY }}
+          version: ${{ env.CLOUD_SDK_VERSION }}
+          project_id: ${{ env.CLOUD_PROJECT_ID }}
+          service_account_key: ${{ env.CLOUD_SERVICE_KEY }}
       - name: Setup Docker
         run: |
           gcloud auth configure-docker
@@ -58,10 +58,10 @@ jobs:
       - name: Get GKE Credentials
         uses: google-github-actions/get-gke-credentials@main
         with:
-          cluster_name: ${{ env.GCP_GKE_CLUSTER_NAME }}
-          location: ${{ env.GCP_GKE_CLUSTER_REGION }}
-          credentials: ${{ env.GCP_SA_KEY }}
-          project_id: ${{ env.GCP_PROJECT_ID }}
+          cluster_name: ${{ env.K8S_CLUSTER_NAME }}
+          location: ${{ env.K8S_CLUSTER_LOCATION }}
+          credentials: ${{ env.CLOUD_SERVICE_KEY }}
+          project_id: ${{ env.CLOUD_PROJECT_ID }}
       - name: Setup Helm
         uses: azure/setup-helm@v1
         with:
@@ -78,7 +78,7 @@ jobs:
             --values helm/values-stage.yaml \
             --set-string image.repository=${IMAGE_REPOSITORY} \
             --set-string image.tag=${COMMIT_SHA} \
-            --namespace ${GCP_GKE_CLUSTER_NAMESPACE} \
+            --namespace ${K8S_CLUSTER_NAMESPACE} \
             --timeout ${HELM_INSTALL_TIMEOUT} \
             ${HELM_RELEASE_NAME} \
             ${HELM_PATH}

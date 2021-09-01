@@ -1,15 +1,3 @@
-#################################################
-# Environment variables (as bitbucket secrets): #
-# GOOGLE_PROJECT_ID                             #
-# GCLOUD_SERVICE_KEY                            #
-# GCLOUD_COMPUTE_ZONE                           #
-# GOOGLE_CLUSTER_NAME                           #
-# CT_CLIENT_SECRET                              #
-# CT_CLIENT_ID                                  #
-# CT_PROJECT_KEY                                #
-# CT_SCOPE                                      #
-#################################################
-
 image: node:14-slim
 clone:
   depth: 20
@@ -74,11 +62,11 @@ stepdefinitions:
         - docker
       script:
         - docker load --input ./tmp-image.docker
-        - docker tag $BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7} gcr.io/$GOOGLE_PROJECT_ID/$BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7}
-        - echo $GCLOUD_SERVICE_KEY > $HOME/gcloud-service-key.json
+        - docker tag $BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7} gcr.io/$CLOUD_PROJECT_ID/$BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7}
+        - echo $CLOUD_SERVICE_KEY > $HOME/gcloud-service-key.json
         - gcloud auth activate-service-account --key-file=$HOME/gcloud-service-key.json
         - gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
-        - docker push gcr.io/$GOOGLE_PROJECT_ID/$BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7}
+        - docker push gcr.io/$CLOUD_PROJECT_ID/$BITBUCKET_REPO_SLUG:${BITBUCKET_COMMIT:0:7}
       services:
         - docker
   - deploy: &deploy
@@ -86,14 +74,14 @@ stepdefinitions:
       image: google/cloud-sdk:latest
       deployment: production
       script:
-        - echo $GCLOUD_SERVICE_KEY > $HOME/gcloud-service-key.json
+        - echo $CLOUD_SERVICE_KEY > $HOME/gcloud-service-key.json
         - gcloud auth activate-service-account --key-file=$HOME/gcloud-service-key.json
-        - gcloud --quiet config set project $GOOGLE_PROJECT_ID
+        - gcloud --quiet config set project $CLOUD_PROJECT_ID
         - gcloud --quiet config set compute/zone $GCLOUD_COMPUTE_ZONE
-        - gcloud --quiet container clusters get-credentials $GOOGLE_CLUSTER_NAME
+        - gcloud --quiet container clusters get-credentials $K8S_CLUSTER_NAME
         - echo "### Deploy to PROD "
         - curl https://get.helm.sh/helm-v3.0.0-linux-amd64.tar.gz | tar -zxv && mv linux-amd64/helm /usr/local/bin/helm && helm version --client
-        - helm upgrade --install --wait $BITBUCKET_REPO_SLUG helm/$BITBUCKET_REPO_SLUG --values helm/$BITBUCKET_REPO_SLUG/values.yaml --set image.tag=${BITBUCKET_COMMIT:0:7} --set commercetools.client.secret=${CT_CLIENT_SECRET} --set commercetools.client.id=${CT_CLIENT_ID} --set commercetools.project_key=${CT_PROJECT_KEY} --set gc_project_id=${GOOGLE_PROJECT_ID} --set commercetools.scope=${CT_SCOPE}
+        - helm upgrade --install --wait $BITBUCKET_REPO_SLUG helm/$BITBUCKET_REPO_SLUG --values helm/$BITBUCKET_REPO_SLUG/values.yaml --set image.tag=${BITBUCKET_COMMIT:0:7} --set commercetools.client.secret=${CT_CLIENT_SECRET} --set commercetools.client.id=${CT_CLIENT_ID} --set commercetools.project_key=${CT_PROJECT_KEY} --set gc_project_id=${CLOUD_PROJECT_ID} --set commercetools.scope=${CT_SCOPE}
 
 pipelines:
   default:

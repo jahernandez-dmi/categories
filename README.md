@@ -4,7 +4,7 @@ This is a template for microservices using [Fastify](https://github.com/fastify/
 
 ## TECHNOLOGIES
   
--   [**NodeJS v10**](https://nodejs.org/docs/latest-v10.x/api/index.html)
+-   [**NodeJS v14**](https://nodejs.org/docs/latest-v14.x/api/index.html)
 -   **[Fastify](https://www.fastify.io/):** As servier
 -   **[JestJS](https://jestjs.io/):** For testing
 -   **[Eslint](https://eslint.org/):** For linting
@@ -158,13 +158,24 @@ The following variables must be defined/overwritten so that the service can work
 | CT_CLIENT_ID              | commercetools client id       | -                               |
 | CT_CLIENT_SECRET          | commercetools client secret   | -                               |
 | CT_SCOPE                  | commercetools scope           | -                               |
-| GC_PROJECT_ID             | The Google Cloud project id   | -                               |
 | DEPLOY_TOKEN_USERNAME     | Token to download image       | -                               |
 | DEPLOY_TOKEN_PASSWORD     | Token to download image       | -                               |
-| GCP_GKE_CLUSTER_NAME      | GKE cluster name              | -                               |
-| GCP_GKE_CLUSTER_NAMESPACE | GKE cluster namespace         | -                               |
-| GCP_PROJECT_ID            | The Google Cloud project id   | -                               |
-| GCP_REGION                | GKE cluster region            | -                               |
+| K8S_CLUSTER_NAME          | K8S cluster name              | -                               |
+| K8S_CLUSTER_NAMESPACE     | K8S cluster namespace         | -                               |
+| K8S_CLUSTER_LOCATION      | K8S cluster region - location | -                               |
+| CLOUD_PROJECT_ID          | Cloud project id              | -                               |
+| CLOUD_REGION              | Cloud region                  | -                               |
+| CLOUD_SERVICE_KEY         | Cloud App Credentials         | -                               |
+| CLOUD_SDK_VERSION         | Cloud sdk version             | -                               |
+| JWT_ISSUER                | Issuer key                    | -                               |
+
+## Repository variables
+
+| VARIABLE                     | DESCRIPTION                   | DEFAULT                         |
+| ---------------------------- | ----------------------------- | ------------------------------- |
+| CI_REGISTRY                  | Container registry            | https://gcr.io                  |
+| ISTIO_VERSION                | The version of Istio          | -                               |
+| HELM_VERSION                 | The version of Helm           | -                               |
 
 ### Important note
 Create environments to reuse the same variables and create the deployment tokens in each project

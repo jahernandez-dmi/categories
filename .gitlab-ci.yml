@@ -44,15 +44,18 @@ openapi-lint:
 dependency-scan:
   allow_failure: true
 
+container-scanning:
+  allow_failure: true
+
 develop:
   image: devth/helm:v$HELM_VERSION
   stage: deploy
   environment: develop
   variables:
-    GCP_GKE_CLUSTER_NAME: $GCP_GKE_CLUSTER_NAME_DEV
-    GCP_GKE_CLUSTER_LOCATION: $GCP_GKE_CLUSTER_LOCATION_DEV
-    GCP_PROJECT_ID: $GCP_PROJECT_ID_DEV
-    GCP_GKE_CLUSTER_NAMESPACE: $GCP_GKE_CLUSTER_NAMESPACE_DEV
+    CLOUD_PROJECT_ID: $CLOUD_PROJECT_ID_DEV
+    K8S_CLUSTER_NAME: $K8S_CLUSTER_NAME_DEV
+    K8S_CLUSTER_LOCATION: $K8S_CLUSTER_LOCATION_DEV
+    K8S_CLUSTER_NAMESPACE: $K8S_CLUSTER_NAMESPACE_DEV
     HELM_OPTS:
       --values helm/values-$CI_ENVIRONMENT_NAME.yaml
       --set-string image.repository=$CI_REGISTRY_IMAGE
@@ -64,14 +67,14 @@ develop:
       # --set-string jwt.jwksUri=https://www.googleapis.com/service_accounts/v1/jwk/${JWT_ISSUER_DEV}
 
   before_script:
-    - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-    - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
-      --region $GCP_GKE_CLUSTER_LOCATION --project $GCP_PROJECT_ID
+    - gcloud auth activate-service-account --key-file=$CLOUD_SERVICE_KEY
+    - gcloud container clusters get-credentials $K8S_CLUSTER_NAME
+      --region $K8S_CLUSTER_LOCATION --project $CLOUD_PROJECT_ID
   script:
     - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - helm chart pull $HELM_RESPOSITORY:$HELM_CHART_VERSION
     - helm chart export $HELM_RESPOSITORY:$HELM_CHART_VERSION -d $HELM_PATH
-    - helm upgrade --install --wait --namespace $GCP_GKE_CLUSTER_NAMESPACE --timeout 5m
+    - helm upgrade --install --wait --namespace $K8S_CLUSTER_NAMESPACE --timeout 5m
       --set-string image.tag=${CI_COMMIT_SHA:0:8} $HELM_OPTS $HELM_RELEASE_NAME $HELM_PATH/$HELM_CHART_NAME
   rules:
     - if: $CI_PROJECT_NAME == "fastify-microservice-template"
@@ -83,10 +86,10 @@ staging:
   stage: deploy
   environment: staging
   variables:
-    GCP_GKE_CLUSTER_NAME: $GCP_GKE_CLUSTER_NAME_STG
-    GCP_GKE_CLUSTER_LOCATION: $GCP_GKE_CLUSTER_LOCATION_STG
-    GCP_PROJECT_ID: $GCP_PROJECT_ID_STG
-    GCP_GKE_CLUSTER_NAMESPACE: $GCP_GKE_CLUSTER_NAMESPACE_STG
+    CLOUD_PROJECT_ID: $CLOUD_PROJECT_ID_STG
+    K8S_CLUSTER_NAME: $K8S_CLUSTER_NAME_STG
+    K8S_CLUSTER_LOCATION: $K8S_CLUSTER_LOCATION_STG
+    K8S_CLUSTER_NAMESPACE: $K8S_CLUSTER_NAMESPACE_STG
     HELM_OPTS:
       --values helm/values-$CI_ENVIRONMENT_NAME.yaml
       --set-string image.repository=$CI_REGISTRY_IMAGE
@@ -97,14 +100,14 @@ staging:
       # --set-string jwt.issuer=${JWT_ISSUER_STG}
       # --set-string jwt.jwksUri=https://www.googleapis.com/service_accounts/v1/jwk/${JWT_ISSUER_STG}
   before_script:
-    - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-    - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
-      --region $GCP_GKE_CLUSTER_LOCATION --project $GCP_PROJECT_ID
+    - gcloud auth activate-service-account --key-file=$CLOUD_SERVICE_KEY
+    - gcloud container clusters get-credentials $K8S_CLUSTER_NAME
+      --region $K8S_CLUSTER_LOCATION --project $CLOUD_PROJECT_ID
   script:
     - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - helm chart pull $HELM_RESPOSITORY:$HELM_CHART_VERSION
     - helm chart export $HELM_RESPOSITORY:$HELM_CHART_VERSION -d $HELM_PATH
-    - helm upgrade --install --wait --namespace $GCP_GKE_CLUSTER_NAMESPACE --timeout 5m
+    - helm upgrade --install --wait --namespace $K8S_CLUSTER_NAMESPACE --timeout 5m
       --set-string image.tag=${CI_COMMIT_SHA:0:8} $HELM_OPTS $HELM_RELEASE_NAME $HELM_PATH/$HELM_CHART_NAME
   rules:
     # https://semver.org/spec/v2.0.0.html: tag release/v0.1.2
@@ -115,10 +118,10 @@ production:
   stage: deploy
   environment: production
   variables:
-    GCP_GKE_CLUSTER_NAME: $GCP_GKE_CLUSTER_NAME_PROD
-    GCP_GKE_CLUSTER_LOCATION: $GCP_GKE_CLUSTER_LOCATION_PROD
-    GCP_PROJECT_ID: $GCP_PROJECT_ID_PROD
-    GCP_GKE_CLUSTER_NAMESPACE: $GCP_GKE_CLUSTER_NAMESPACE_PROD
+    CLOUD_PROJECT_ID: $CLOUD_PROJECT_ID_PROD
+    K8S_CLUSTER_NAME: $K8S_CLUSTER_NAME_PROD
+    K8S_CLUSTER_LOCATION: $K8S_CLUSTER_LOCATION_PROD
+    K8S_CLUSTER_NAMESPACE: $K8S_CLUSTER_NAMESPACE_PROD
     HELM_OPTS:
       --values helm/values-$CI_ENVIRONMENT_NAME.yaml
       --set-string image.repository=$CI_REGISTRY_IMAGE
@@ -129,14 +132,14 @@ production:
       # --set-string jwt.issuer=${JWT_ISSUER_PROD}
       # --set-string jwt.jwksUri=https://www.googleapis.com/service_accounts/v1/jwk/${JWT_ISSUER_PROD}
   before_script:
-    - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-    - gcloud container clusters get-credentials $GCP_GKE_CLUSTER_NAME
-      --region $GCP_GKE_CLUSTER_LOCATION --project $GCP_PROJECT_ID
+    - gcloud auth activate-service-account --key-file=$CLOUD_SERVICE_KEY
+    - gcloud container clusters get-credentials $K8S_CLUSTER_NAME
+      --region $K8S_CLUSTER_LOCATION --project $CLOUD_PROJECT_ID
   script:
     - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - helm chart pull $HELM_RESPOSITORY:$HELM_CHART_VERSION
     - helm chart export $HELM_RESPOSITORY:$HELM_CHART_VERSION -d $HELM_PATH
-    - helm upgrade --install --wait --namespace $GCP_GKE_CLUSTER_NAMESPACE --timeout 5m
+    - helm upgrade --install --wait --namespace $K8S_CLUSTER_NAMESPACE --timeout 5m
       --set-string image.tag=${CI_COMMIT_SHA:0:8} $HELM_OPTS $HELM_RELEASE_NAME $HELM_PATH/$HELM_CHART_NAME
   rules:
     # https://semver.org/spec/v2.0.0.html: tag stable/v0.1.2
