@@ -5,10 +5,7 @@ WORKDIR /opt/node_app
 COPY package*.json ./
 
 FROM base as release-dependencies
-ARG NPM_TOKEN
-RUN npm config set "@devgurusio:registry=https://npm.pkg.github.com" && \
-    npm config set "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" && \
-    npm set progress=false      &&\
+RUN npm set progress=false      &&\
     npm config set depth 0      &&\
     npm ci --only=production    &&\
     npm cache clean --force
