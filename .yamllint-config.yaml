@@ -1,9 +1,11 @@
 ---
 # https://yamllint.readthedocs.io/en/stable/configuration.html #
-extends: default
+extends: relaxed
 
 ignore: |
   bitbucket-pipelines.yml
+  helm/
+  node_modules/
 
 rules:
   line-length:
