@@ -212,7 +212,7 @@ npm run test
 ```
 ### With Docker
 ```shell
-docker build -t devgurus/fastify-microservice-template --build-arg NPM_TOKEN=CHANGEME .
+docker build -t devgurus/fastify-microservice-template .
 docker run -it --entrypoint sh -p 4444:4444 --env HOST=0.0.0.0 devgurus/fastify-microservice-template
 ```
 
