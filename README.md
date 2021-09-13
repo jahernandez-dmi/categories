@@ -1,5 +1,7 @@
 # Categories API Server
 
+This is a category service meant to be a proxy between your application and [Commerce Tools categories](https://docs.commercetools.com/api/projects/categories) endpoints.
+
 ## TECHNOLOGIES
   
 -   [**NodeJS v14**](https://nodejs.org/docs/latest-v14.x/api/index.html)
@@ -11,44 +13,6 @@
 -   **[Docker](https://www.docker.com/)**: For container generation
 -   **[Bitbucket Pipelines](https://bitbucket.org/product/features/pipelines):** As CI
 -   **[SonarCloud](https://sonarcloud.io/)**: For static code analisys
-
-## AVAILABLE ENDPOINTS
-
-### GET CATEGORY BY ID
-
-> GET /:id
-
-Get category via ID
-
-### GET CATEGORY BY SLUG
-
-> GET /slug/:slug
-
-Get category via slug
-
-### FIND CATEGORIES
-
-> GET /
-
-Get categories
-
-### CREATE CATEGOY
-
-> POST /
-
-Create a new category
-
-### UPDATE CATEGORY
-
-> PUT /:id
-
-Update category
-
-### DELETE CATEGORY
-
-> DELETE /:id
-
-Delete a category
 
 ## PLUGINS
 
@@ -69,7 +33,7 @@ Includes the [fastify-metrics](https://github.com/SkeLLLa/fastify-metrics) plugi
 
 ### Logging
 
-In terms of logging, there is no rule carved on stone, but you can follow this guide to ensure the process as a constant configurations across all the services built with this template.
+In terms of logging, there is no rule carved on stone, but you can follow this guide to ensure the process as a constant configurations across all the services built with this microservice.
 
 By default Fastify has six log levels:
 -   info
@@ -231,6 +195,32 @@ npm install
 ```shell
 npm run lint --fix
 ```
+### Start server dev
+```shell
+npm run start-dev
+```
+### Start server
+```shell
+npm run start
+```
+### Unit tests
+```shell
+npm run test
+```
+### With Docker
+```shell
+docker build -t devgurus/api-categories .
+docker run -it --entrypoint sh -p 4444:4444 --env HOST=0.0.0.0 devgurus/api-categories
+```
+### Example request
+```shell
+curl --location --request GET 'http://localhost:4444/?queryOne=test'
+```
+
+### Documentation
+In order to access the API documentation in swagger format, go to https://HOST:PORT/docs
+To generate `/docs/swagger.yml` file with the documentation, run `npm run swagger`.
+
 ### Run Spectral linter
 There are two ways to use the Spectral tool to validate the MS specification file:
 - If you are using VSCode, you can install the extension 'Spectral' and just by opening any .yml / .yaml file 
@@ -246,26 +236,45 @@ Steps to permform the validation:
 ```shell
    npm run swagger (the file will be generated in ./docs folder)
 ```
-
 - To ensure that the file exists and its correct
 ```shell
    test -f ./docs/swagger.yml && spectral lint ./docs/swagger.yml || false
 ```
 
-### Start server
-```shell
-npm run start-dev
-```
-### Unit tests
-```shell
-npm run test
-```
-### With Docker
-```shell
-docker build -t devgurus/fastify-microservice-template .
-docker run -it --entrypoint sh -p 4444:4444 --env HOST=0.0.0.0 devgurus/fastify-microservice-template
-```
-### Example request
-```shell
-curl --location --request GET 'http://localhost:4444/?queryOne=test'
-```
+## AVAILABLE ENDPOINTS
+
+### GET CATEGORY BY ID
+
+> GET /:id
+
+Get category via ID
+
+### GET CATEGORY BY SLUG
+
+> GET /slug/:slug
+
+Get category via slug
+
+### FIND CATEGORIES
+
+> GET /
+
+Get categories
+
+### CREATE CATEGOY
+
+> POST /
+
+Create a new category
+
+### UPDATE CATEGORY
+
+> PUT /:id
+
+Update category
+
+### DELETE CATEGORY
+
+> DELETE /:id
+
+Delete a category

@@ -14,7 +14,7 @@ resources:
     memory: 256Mi
 
 image:
-  repository: registry.gitlab.com/devgurus/development/templates/fastify-microservice-template
+  repository: registry.gitlab.com/devgurus/commercetools-accelerator/development/api/categories
   tag: latest
   pullPolicy: IfNotPresent
 

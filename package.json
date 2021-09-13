@@ -1,7 +1,7 @@
 {
-  "name": "fastify-microservice-template",
-  "version": "3.0.1",
-  "description": "A Fastify microservice template",
+  "name": "api-categories",
+  "version": "1.0.0",
+  "description": "API REST Categories microservice",
   "scripts": {
     "lint": "eslint .",
     "lint-fix": "eslint --fix .",
@@ -19,7 +19,8 @@
   },
   "keywords": [
     "fastify",
-    "microservice"
+    "microservice",
+    "categories"
   ],
   "engines": {
     "node": ">=14.*"
