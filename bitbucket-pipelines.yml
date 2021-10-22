@@ -58,7 +58,7 @@ stepdefinitions:
         - docker
       script:
         - docker load --input ./tmp-image-src.docker
-        - docker run --entrypoint="/bin/sh" $BITBUCKET_REPO_SLUG-src:${BITBUCKET_COMMIT:0:7} -c "npm audit"
+        - docker run --entrypoint="/bin/sh" $BITBUCKET_REPO_SLUG-src:${BITBUCKET_COMMIT:0:7} -c "npm audit --production --audit-level=moderate"
   - publish: &publish
       name: Publish (push docker image)
       image: google/cloud-sdk:355.0.0-alpine

@@ -1,12 +1,11 @@
 const fastifyPlugin = require('fastify-plugin');
-const fastifyOas = require('fastify-oas');
+const fastifySwagger = require('fastify-swagger');
 
 module.exports = fastifyPlugin((fastify, opts, next) => {
   const swaggerConfig = {
     exposeRoute: true,
     routePrefix: '/docs',
-    openapi: '3.1.0',
-    swagger: {
+    openapi: {
       info: {
         title: 'Template Microservice',
         description: 'Template Microservice description',
@@ -17,24 +16,39 @@ module.exports = fastifyPlugin((fastify, opts, next) => {
           email: 'cta@devgurus.io'
         }
       },
-      host: '127.0.0.1',
-      basePath: '/s/fastify-microservice-template/v1',
+      servers: [
+        {
+          url: 'http://127.0.0.1',
+          description: 'Development server'
+        },
+        {
+          url: 'http://{url}/{basePath}',
+          description: 'The production API server',
+          variables: {
+            basePath: {
+              default: '/s/fastify-microservice-template/v1'
+            },
+            url: {
+              default: '127.0.0.1'
+            }
+          }
+        }
+      ],
       tags: [{ name: 'public' }, { name: 'private' }], // Private / Public tags refer to whether an operation needs authentication or not.
-      schemes: ['https'],
-      consumes: ['application/json'],
-      produces: ['application/json'],
-      securityDefinitions: {
-        apiKey: {
-          type: 'apiKey',
-          name: 'apiKey',
-          in: 'header'
+      components: {
+        securitySchemes: {
+          apiKey: {
+            type: 'apiKey',
+            name: 'apiKey',
+            in: 'header'
+          }
         }
       },
       ...opts
     }
   };
 
-  fastify.register(fastifyOas, swaggerConfig);
+  fastify.register(fastifySwagger, swaggerConfig);
 
   next();
 });
