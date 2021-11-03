@@ -58,10 +58,10 @@ stepdefinitions:
         - docker
       script:
         - docker load --input ./tmp-image-src.docker
-        - docker run --entrypoint="/bin/sh" $BITBUCKET_REPO_SLUG-src:${BITBUCKET_COMMIT:0:7} -c "npm audit"
+        - docker run --entrypoint="/bin/sh" $BITBUCKET_REPO_SLUG-src:${BITBUCKET_COMMIT:0:7} -c "npm audit --production --audit-level=moderate"
   - publish: &publish
       name: Publish (push docker image)
-      image: google/cloud-sdk:$CLOUD_SDK_VERSION-alpine
+      image: google/cloud-sdk:355.0.0-alpine
       caches:
         - docker
       script:
@@ -77,7 +77,7 @@ stepdefinitions:
         - docker
   - deploy: &deploy
       name: Deploy
-      image: devth/helm:v$HELM_VERSION
+      image: devth/helm:v3.6.3
       script:
         # vars
         - HELM_RESPOSITORY="registry.gitlab.com/devgurus/development/templates/helm-microservice-chart"

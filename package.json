@@ -42,8 +42,8 @@
     "fastify-env": "^2.1.1",
     "fastify-healthcheck": "^3.0.0",
     "fastify-metrics": "^7.2.1",
-    "fastify-oas": "^3.0.3",
     "fastify-plugin": "^3.0.0",
+    "fastify-swagger": "^4.12.5",
     "pino-pretty": "^5.0.2"
   },
   "devDependencies": {

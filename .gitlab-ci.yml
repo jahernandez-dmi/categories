@@ -32,7 +32,7 @@ stages:
 variables:
   YAMLLINT_OPTS: "-c .yamllint-config.yaml -f colored"
   HELM_RESPOSITORY: "registry.gitlab.com/devgurus/development/templates/helm-microservice-chart"
-  HELM_CHART_VERSION: "0.1.0"
+  HELM_CHART_VERSION: "0.2.0"
   HELM_CHART_NAME: "helm-microservice-chart"
   HELM_PATH: "helm"
   HELM_RELEASE_NAME: ${CI_PROJECT_NAME}-v1
@@ -76,8 +76,7 @@ develop:
       --region $K8S_CLUSTER_LOCATION --project $CLOUD_PROJECT_ID
   script:
     - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - helm chart pull $HELM_RESPOSITORY:$HELM_CHART_VERSION
-    - helm chart export $HELM_RESPOSITORY:$HELM_CHART_VERSION -d $HELM_PATH
+    - helm pull oci://$HELM_RESPOSITORY --version $HELM_CHART_VERSION --untar -d $HELM_PATH
     - helm upgrade --install --wait --namespace $K8S_CLUSTER_NAMESPACE --timeout 5m
       --set-string image.tag=${CI_COMMIT_SHA:0:8} $HELM_OPTS $HELM_RELEASE_NAME $HELM_PATH/$HELM_CHART_NAME
   rules:
@@ -109,8 +108,7 @@ staging:
       --region $K8S_CLUSTER_LOCATION --project $CLOUD_PROJECT_ID
   script:
     - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - helm chart pull $HELM_RESPOSITORY:$HELM_CHART_VERSION
-    - helm chart export $HELM_RESPOSITORY:$HELM_CHART_VERSION -d $HELM_PATH
+    - helm pull oci://$HELM_RESPOSITORY --version $HELM_CHART_VERSION --untar -d $HELM_PATH
     - helm upgrade --install --wait --namespace $K8S_CLUSTER_NAMESPACE --timeout 5m
       --set-string image.tag=${CI_COMMIT_SHA:0:8} $HELM_OPTS $HELM_RELEASE_NAME $HELM_PATH/$HELM_CHART_NAME
   rules:
@@ -141,8 +139,7 @@ production:
       --region $K8S_CLUSTER_LOCATION --project $CLOUD_PROJECT_ID
   script:
     - helm registry login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - helm chart pull $HELM_RESPOSITORY:$HELM_CHART_VERSION
-    - helm chart export $HELM_RESPOSITORY:$HELM_CHART_VERSION -d $HELM_PATH
+    - helm pull oci://$HELM_RESPOSITORY --version $HELM_CHART_VERSION --untar -d $HELM_PATH
     - helm upgrade --install --wait --namespace $K8S_CLUSTER_NAMESPACE --timeout 5m
       --set-string image.tag=${CI_COMMIT_SHA:0:8} $HELM_OPTS $HELM_RELEASE_NAME $HELM_PATH/$HELM_CHART_NAME
   rules:
