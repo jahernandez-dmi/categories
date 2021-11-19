@@ -1,25 +1,25 @@
 ---
 include:
   - project: 'devgurus/development/templates/lint/markdown'
-    ref: master
+    ref: main
     file: 'template/.gitlab-ci-template.yml'
   - project: 'devgurus/development/templates/lint/yaml'
-    ref: master
+    ref: main
     file: 'template/.gitlab-ci-template.yml'
   - project: 'devgurus/development/templates/lint/node'
-    ref: master
+    ref: main
     file: 'template/.gitlab-ci-template.yml'
   - project: 'devgurus/development/templates/lint/openapi'
     ref: main
     file: 'template/.gitlab-ci-template.yml'
   - project: 'devgurus/development/templates/build/container'
-    ref: master
+    ref: main
     file: 'template/.gitlab-ci-template.yml'
   - project: 'devgurus/development/templates/audit/dependency-check'
-    ref: master
+    ref: main
     file: 'template/.gitlab-ci-template.yml'
   - project: 'devgurus/development/templates/audit/trivy-container-scanner'
-    ref: master
+    ref: main
     file: 'template/.gitlab-ci-template.yml'
 
 stages:
