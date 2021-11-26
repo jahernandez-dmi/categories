@@ -9,13 +9,14 @@ module.exports = fastifyPlugin((fastify, opts, next) => {
   });
 
   fastify.register(fastifyHealthcheck, {
-    healthcheckUrl: '/live'
+    healthcheckUrl: '/live',
+    logLevel: 'warn'
     // healthcheckUrlDisable: true,
     // healthcheckUrlAlwaysFail: true,
     // underPressureOptions: { } // no under-pressure specific options set here
   });
 
-  fastify.get('/ready', async (request, reply) => {
+  fastify.get('/ready', { logLevel: 'warn' }, async (request, reply) => {
     reply.code(fastify.serviceAvailable ? 200 : 503).send();
   });
 
