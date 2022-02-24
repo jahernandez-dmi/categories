@@ -127,7 +127,7 @@ pipelines:
               # Uncomment if we want jwt policy
               #--set-string jwt.issuer=${JWT_ISSUER}
               #--set-string jwt.jwksUri=https://www.googleapis.com/service_accounts/v1/jwk/${JWT_ISSUER}
-    master:
+    main:
       - step: *lint
       - step: *build
       - step: *test
