@@ -64,7 +64,8 @@ function index() {
   Fastify.register(metrics);
   Fastify.register(routes);
 
-  [('SIGTERM', 'SIGINT')].forEach(signal => {
+  ['SIGTERM', 'SIGINT', 'SIGQUIT'].forEach(signal => {
+    Fastify.log.debug(`Listening on ${signal}`);
     process.on(signal, () => {
       Fastify.log.info(`${signal} signal received. Terminating service`);
       Fastify.serviceAvailable = false;
