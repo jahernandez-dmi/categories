@@ -29,7 +29,7 @@ stages:
 variables:
   YAMLLINT_OPTS: "-c .yamllint-config.yaml -f colored"
   HELM_RESPOSITORY: "registry.gitlab.com/devgurus/development/templates/helm-microservice-chart"
-  HELM_CHART_VERSION: "0.3.0"
+  HELM_CHART_VERSION: "0.4.0"
   HELM_CHART_NAME: "helm-microservice-chart"
   HELM_PATH: "helm"
   HELM_RELEASE_NAME: ${CI_PROJECT_NAME}-v1
