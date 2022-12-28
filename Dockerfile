@@ -1,8 +1,7 @@
-ARG NODE_VERSION=14
-
+ARG NODE_VERSION=18
 FROM node:${NODE_VERSION} as base
 WORKDIR /opt/node_app
-COPY package*.json ./
+copy package*.json ./
 
 FROM base as release-dependencies
 RUN npm set progress=false      &&\
@@ -10,7 +9,7 @@ RUN npm set progress=false      &&\
     npm ci --only=production    &&\
     npm cache clean --force
 
-FROM node:${NODE_VERSION}-alpine3.14 AS release
+FROM node:${NODE_VERSION}-alpine3.17 AS release
 USER node
 WORKDIR /opt/node_app
 COPY --from=release-dependencies /opt/node_app/ .
