@@ -1,4 +1,4 @@
-image: node:14-slim
+image: node:18-slim
 clone:
   depth: full # include the last commit
 options:
@@ -39,7 +39,7 @@ stepdefinitions:
         - tmp-image-src.docker
   - test: &test
       name: Test and Analyze
-      image: node:14-slim
+      image: node:18-slim
       caches:
         - node
         - sonar

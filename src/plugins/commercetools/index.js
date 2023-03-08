@@ -1,6 +1,6 @@
 require('dotenv').config();
 const fastifyPlugin = require('fastify-plugin');
-const fastifyEnv = require('fastify-env');
+const fastifyEnv = require('@fastify/env');
 const fastifyCommercetools = require('fastify-commercetools');
 
 module.exports = fastifyPlugin((fastify, opts, next) => {

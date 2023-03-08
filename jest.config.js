@@ -11,8 +11,14 @@ module.exports = {
   // The directory where Jest should output its coverage files
   coverageDirectory: 'coverage',
 
-  // The test environment that will be used for testing
-  testEnvironment: 'node',
+  collectCoverageFrom: ['**/*.js', '!jest.config.js', '!coverage/**/*.js'],
 
-  modulePathIgnorePatterns: ['<rootDir>/.*/__mocks__']
+  modulePathIgnorePatterns: [
+    '<rootDir>/.*/__mocks__',
+    'commitlint.config.js',
+    '<rootDir>/.*/schemas'
+  ],
+
+  // The test environment that will be used for testing
+  testEnvironment: 'node'
 };

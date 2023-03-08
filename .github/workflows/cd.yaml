@@ -9,7 +9,7 @@ on:
       - completed
 
 env:
-  NODE_VERSION: 14
+  NODE_VERSION: 18
   PACKAGES_PAT: ${{ secrets.PACKAGES_PAT }} # Personal Access Token to use packages from Github Registry
 
   # Cloud env variables

@@ -1,5 +1,5 @@
 const fastifyPlugin = require('fastify-plugin');
-const fastifyEnv = require('fastify-env');
+const fastifyEnv = require('@fastify/env');
 
 module.exports = fastifyPlugin((fastify, opts, next) => {
   const configSchema = {

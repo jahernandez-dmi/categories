@@ -1,5 +1,5 @@
 const fastifyPlugin = require('fastify-plugin');
-const fastifySwagger = require('fastify-swagger');
+const fastifySwagger = require('@fastify/swagger');
 
 module.exports = fastifyPlugin((fastify, opts, next) => {
   const swaggerConfig = {

@@ -4,6 +4,7 @@ extends: default
 
 ignore: |
   bitbucket-pipelines.yml
+  node_modules
 
 rules:
   line-length:

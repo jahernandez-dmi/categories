@@ -4,7 +4,7 @@ This is a category service meant to be a proxy between your application and [Com
 
 ## TECHNOLOGIES
   
--   [**NodeJS v14**](https://nodejs.org/docs/latest-v14.x/api/index.html)
+-   [**NodeJS v18**](https://nodejs.org/docs/latest-v18.x/api/)
 -   **[Fastify](https://www.fastify.io/):** As servier
 -   **[JestJS](https://jestjs.io/):** For testing
 -   **[Eslint](https://eslint.org/):** For linting

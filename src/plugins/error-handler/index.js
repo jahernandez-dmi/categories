@@ -26,7 +26,7 @@ module.exports = fastifyPlugin((fastify, opts, next) => {
           error.statusCode ||
           (error.errors && error.errors.length && error.errors[0].status) ||
           reply.statusCode ||
-          reply.res.statusCode ||
+          reply.raw.statusCode ||
           '500';
 
     if (error.validation) {
