@@ -1,6 +1,6 @@
 {
   "name": "api-categories",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "API REST Categories microservice",
   "bugs": "https://gitlab.com/devgurus/commercetools-accelerator/development/api/categories/issues",
   "repository": {
@@ -39,9 +39,9 @@
   },
   "dependencies": {
     "@commercetools/sync-actions": "^4.9.5",
-    "commercetools-entities-schemas": "^1.1.25",
+    "commercetools-entities-schemas": "^1.1.26",
     "dotenv": "^16.0.3",
-    "fastify": "^4.14.1",
+    "fastify": "^4.15.0",
     "fastify-autoload": "^3.13.0",
     "fastify-commercetools": "^1.1.1",
     "@fastify/env": "^4.2.0",
