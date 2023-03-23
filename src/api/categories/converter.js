@@ -52,6 +52,16 @@ const convertQueryToWhere = (query, locale) => {
   return where;
 };
 
+const convertQueryToSort = query => {
+  const sort = [];
+
+  if (query.sortBy && query.sortDirection) {
+    sort.push(`${query.sortBy} ${query.sortDirection}`);
+  }
+
+  return sort;
+};
+
 const buildChildren = (categories, depth = 0) => {
   const parents = categories.filter(cat => cat.ancestors.length === depth);
 
@@ -64,4 +74,9 @@ const buildChildren = (categories, depth = 0) => {
   }));
 };
 
-module.exports = { convertCategory, convertQueryToWhere, buildChildren };
+module.exports = {
+  convertCategory,
+  convertQueryToWhere,
+  buildChildren,
+  convertQueryToSort
+};

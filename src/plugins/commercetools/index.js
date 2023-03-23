@@ -70,21 +70,30 @@ module.exports = fastifyPlugin((fastify, opts, next) => {
         LOGGING_CONFIG_ERROR: error
       } = fastify.ctconfig;
       const commercetoolsConfig = {
-        commercetools: {
-          host,
-          oauthHost,
+        auth: {
+          host: oauthHost,
           projectKey,
-          clientId,
-          clientSecret,
-          concurrency,
-          loggingConfig: {
-            enable,
-            useFastifyLogger,
-            request,
-            body,
-            error
+          credentials: {
+            clientId,
+            clientSecret
           }
-        }
+        },
+        http: {
+          host: host,
+          enableRetry: true,
+          retryConfig: {
+            maxRetries: 3
+          }
+        },
+        loggingConfig: {
+          enable,
+          useFastifyLogger,
+          request,
+          body,
+          error
+        },
+        ...(concurrency && { queue: { concurrency } }),
+        projectKey
       };
 
       fastify.register(fastifyCommercetools, commercetoolsConfig);

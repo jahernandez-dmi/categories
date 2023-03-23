@@ -38,12 +38,12 @@
     "#routes": "./src/api/routes.js"
   },
   "dependencies": {
-    "@commercetools/sync-actions": "^4.9.5",
+    "@commercetools/sync-actions": "^5.5.0",
     "commercetools-entities-schemas": "^1.1.26",
     "dotenv": "^16.0.3",
     "fastify": "^4.15.0",
     "fastify-autoload": "^3.13.0",
-    "fastify-commercetools": "^1.1.1",
+    "fastify-commercetools": "^2.0.6",
     "@fastify/env": "^4.2.0",
     "fastify-healthcheck": "^4.4.0",
     "fastify-metrics": "^10.0.3",

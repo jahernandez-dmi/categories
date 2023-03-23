@@ -1,79 +1,50 @@
-const { createSyncCategories } = require('@commercetools/sync-actions');
-const {
-  convertQueryToWhere,
-  buildChildren,
-  convertCategory
-} = require('./converter');
+// const { createSyncCategories } = require('@commercetools/sync-actions');
+// const { convertQueryToWhere, convertCategory } = require('./converter');
 
 module.exports = fastify => {
-  const { CategoryRepository } = fastify.commercetools.repositories;
-
   const service = {};
 
-  service.getChildren = async (id, depth) => {
-    const query = {
-      where: [`ancestors(id="${id}")`],
-      expand: ['ancestors[*]']
-    };
+  const {
+    commercetools: { requestBuilder }
+  } = fastify;
 
-    const categories = await CategoryRepository.findAll(query);
-    return buildChildren(categories.results.map(convertCategory), depth);
-  };
+  const categoriesRequestBuilder = requestBuilder.categories();
 
-  service.getBySlug = async ({ locale = 'en-US', slug }) => {
-    const query = {
-      where: [`slug(${locale}="${slug}")`],
-      expand: ['ancestors[*]'],
-      perPage: 1,
-      page: 1
-    };
+  service.getChildren = async methodArgs =>
+    (await categoriesRequestBuilder.get(methodArgs).execute()).body;
 
-    const {
-      results: [category]
-    } = await CategoryRepository.find(query);
+  service.getBySlug = async methodArgs =>
+    (await categoriesRequestBuilder.get(methodArgs).execute()).body;
 
-    return category;
-  };
+  service.getById = async (id, methodArgs) =>
+    (
+      await categoriesRequestBuilder
+        .withId({ ID: id })
+        .get(methodArgs)
+        .execute()
+    ).body;
 
-  service.getById = async id => CategoryRepository.get(id);
+  service.find = async methodArgs =>
+    (await categoriesRequestBuilder.get(methodArgs).execute()).body;
 
-  service.find = ({
-    page,
-    perPage,
-    sortBy,
-    sortDirection,
-    locale = 'en',
-    isCategoryRoot,
-    name,
-    slug
-  }) =>
-    CategoryRepository.find({
-      page,
-      perPage,
-      sortBy,
-      sortDirection,
-      expand: ['ancestors[*]'],
-      where: convertQueryToWhere({ name, slug, isCategoryRoot }, locale)
-    });
+  service.create = async methodArgs =>
+    (await categoriesRequestBuilder.post(methodArgs).execute()).body;
 
-  service.create = categoryDraft => CategoryRepository.create(categoryDraft);
+  service.update = async (id, methodArgs) =>
+    (
+      await categoriesRequestBuilder
+        .withId({ ID: id })
+        .post(methodArgs)
+        .execute()
+    ).body;
 
-  service.update = async (id, categoryDraft) => {
-    const category = await service.getById(id);
-
-    const syncCategories = createSyncCategories();
-    const actions = syncCategories.buildActions(categoryDraft, category);
-
-    return CategoryRepository.update(id, category.version, actions);
-  };
-
-  service.remove = async id => {
-    const category = await service.getById(id);
-
-    await CategoryRepository.delete(id, category.version);
-
-    return category;
-  };
+  service.remove = async (id, methodArgs) =>
+    (
+      await categoriesRequestBuilder
+        .withId({ ID: id })
+        .delete(methodArgs)
+        .execute()
+    ).body;
 
   return service;
 };
